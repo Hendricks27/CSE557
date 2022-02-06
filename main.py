@@ -112,7 +112,7 @@ if __name__ == '__main__':
     # read loyalty card records, and deal with date formatting and locations
     lc = pd.read_csv(file_path + 'Assignment2 Data/loyalty_data.csv', encoding='latin-1')
     lc = lc.rename({'timestamp': 'date'}, axis='columns')
-    lc = time_zeros(lc)
+    lc = time_zeros(lc, 'date')
     for i in range(0, len(lc)):
         lc.loc[i, 'loc'] = loc[lc.loc[i, 'location']]
 
