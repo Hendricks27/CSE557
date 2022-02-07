@@ -9,20 +9,25 @@
 
 </head>
 <body>
-<div id="container" style="height: 1000px; width: 1000px; overflow: hidden; background-color: lightgrey">
+<div id="container" style="height: 1000px; width: 1300px; overflow: hidden; background-color: lightgrey">
     <svg id="svg1"></svg>
 </div>
-<div id="pid_filter"></div>
+<div id="pid_filter">
+
+</div>
 <div id="time_filter">
-<label for="day">Day (0-14):</label>
-<input type="text" id="day" name="day" required maxlength="2" size="3" value="1">
-<br>
-<label for="hours">Hour Start (0-24):</label>
-<input type="text" id="hours" name="hours" required maxlength="2" size="3" value="0">
-<br>
-<label for="houre">Hour End (0-24):</label>
-<input type="text" id="houre" name="houre" required maxlength="2" size="3" value="24">
-<br><button onclick="refresh()">Submit</button>
+    <label for="days">Day (0-14):</label>
+    <input type="text" id="days" name="days" required maxlength="2" size="3" value="8">
+    <br>
+    <label for="daye">Day (0-14):</label>
+    <input type="text" id="daye" name="daye" required maxlength="2" size="3" value="8">
+    <br>
+    <label for="hours">Hour Start (0-24):</label>
+    <input type="text" id="hours" name="hours" required maxlength="2" size="3" value="0">
+    <br>
+    <label for="houre">Hour End (0-24):</label>
+    <input type="text" id="houre" name="houre" required maxlength="2" size="3" value="24">
+    <br><button onclick="refresh()">Submit</button>
 </div>
 
 

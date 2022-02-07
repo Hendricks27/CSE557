@@ -3,14 +3,9 @@
 ## Team members
 
 ## How to use
-
-```
-cd ./website
-npm start.
-```
+[Hmmmmmm](https://hendricks27.github.io/CSE557/web/index.html)
 ## Next Goal
 
 Wrap the search bar and map in Bootstrap format
 
 Enable the Navbar
-
