@@ -29,6 +29,8 @@ Feb 6, 2022
 |min            |                                       28   |     [the minute from the timestamp of the GPS data]  |
 |sec             |                                       1    |    [the second from the timestamp of the GPS data]  |
 |geometry         |         POINT (24.87468932 36.0762253)     |   [generated from lat and long, for the GeoPandas plots] | 
+|match1      |                                        NaN    |  [nan for no matched events, False for matched loyalty card records, True for matched credit card records]
+|match2      |                                        n    |  ['n' for no matched events, 'l' for matched loyalty card records, 'c' for matched credit card records]
 |Name: 0, dtype: object | 
   
   
