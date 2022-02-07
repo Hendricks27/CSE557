@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Abila Info</title>
+
+    <script src="https://d3js.org/d3.v7.js"></script>
+
+
+</head>
+<body>
+<div id="container" style="height: 1000px; width: 1000px; overflow: hidden; background-color: lightgrey">
+    <svg id="svg1"></svg>
+</div>
+<div id="pid_filter"></div>
+<div id="time_filter">
+<label for="day">Day (0-14):</label>
+<input type="text" id="day" name="day" required maxlength="2" size="3" value="1">
+<br>
+<label for="hours">Hour Start (0-24):</label>
+<input type="text" id="hours" name="hours" required maxlength="2" size="3" value="0">
+<br>
+<label for="houre">Hour End (0-24):</label>
+<input type="text" id="houre" name="houre" required maxlength="2" size="3" value="24">
+<br><button onclick="refresh()">Submit</button>
+</div>
+
+
+<script src="main.js"></script>
+
+
+
+</body>
+</html>
