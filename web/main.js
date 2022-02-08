@@ -7,8 +7,8 @@ var real_time = 7 * 24 * 3600 + 12*3600;
 const svg = d3.select('#svg1')
     .attr("viewBox", "0 0 135 100")
     .attr("transform", "scale(1.05, -1.05) translate(0,0)")
-    .attr('width',  1350)
-    .attr('height', 1000)
+    .attr('width',  "100%")
+    .attr('height', "100%")
     .attr('overflow', "hidden")
 
 
@@ -16,7 +16,7 @@ const map_g = svg.append("g");
 const dot_g = svg.append("g");
 const rtd_g = svg.append("g");
 const plc_g = svg.append("g");
-
+const home_g = svg.append("g");
 
 var colors = [
     '#ccdd22', '#ff4422','#9911bb','#00bbdd',
@@ -85,7 +85,7 @@ function is_main_street(n, t){
     return false
 }
 
-d3.tsv("./map.tsv",
+d3.tsv("./data_map.tsv",
     function (d){
         d.coords = JSON.parse(d.coords);
         var street_width = 0.2;
@@ -112,23 +112,6 @@ d3.tsv("./map.tsv",
 )
 //width="16" height="16" fill="currentColor" class="bi bi-hospital" viewBox="0 0 16 16">
 
-var landscape_data = {}
-plc_g.append("g")
-    .attr("transform", "translate(50, 30) scale(0.2, -0.2)")
-    .append("path")
-    .attr("stroke", "black")
-    .attr("transform", "")
-    .attr("d", "M5 1a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1a1 1 0 0 1 1 1v4h3a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H1a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1h3V3a1 1 0 0 1 1-1V1Zm2 14h2v-3H7v3Zm3 0v-3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1v3H5V3h6v12h-1Zm0-14v1H6V1h4Zm2 7v7h3V8h-3Zm-8 7V8H1v7h3Zm4.5-9.966v1.1l.52-.3.433-.25.5.867-.433.25L9 7l.52.3.433.25-.5.866-.433-.25-.52-.3v1.1h-1v-1.1l-.52.3-.433.25-.5-.866.433-.25L7 7l-.52-.3-.433-.25.5-.866.433.25.52.3v-1.1h1ZM2.25 9a.25.25 0 0 0-.25.25v.5c0 .138.112.25.25.25h.5A.25.25 0 0 0 3 9.75v-.5A.25.25 0 0 0 2.75 9h-.5Zm0 2a.25.25 0 0 0-.25.25v.5c0 .138.112.25.25.25h.5a.25.25 0 0 0 .25-.25v-.5a.25.25 0 0 0-.25-.25h-.5ZM2 13.25a.25.25 0 0 1 .25-.25h.5a.25.25 0 0 1 .25.25v.5a.25.25 0 0 1-.25.25h-.5a.25.25 0 0 1-.25-.25v-.5ZM13.25 9a.25.25 0 0 0-.25.25v.5c0 .138.112.25.25.25h.5a.25.25 0 0 0 .25-.25v-.5a.25.25 0 0 0-.25-.25h-.5ZM13 11.25a.25.25 0 0 1 .25-.25h.5a.25.25 0 0 1 .25.25v.5a.25.25 0 0 1-.25.25h-.5a.25.25 0 0 1-.25-.25v-.5Zm.25 1.75a.25.25 0 0 0-.25.25v.5c0 .138.112.25.25.25h.5a.25.25 0 0 0 .25-.25v-.5a.25.25 0 0 0-.25-.25h-.5Z>")
-
-var xxx = plc_g.append("g").attr("transform", "translate(60, 40) scale(0.2, -0.2)");
-xxx.append("path")
-    .attr("stroke", "black")
-    .attr("transform", "")
-    .attr("d", "M2 13.5V7h1v6.5a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5V7h1v6.5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 13.5zm11-11V6l-2-2V2.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5z")
-xxx.append("path")
-    .attr("stroke", "black")
-    .attr("transform", "")
-    .attr("d", "M7.293 1.5a1 1 0 0 1 1.414 0l6.647 6.646a.5.5 0 0 1-.708.708L8 2.207 1.354 8.854a.5.5 0 1 1-.708-.708L7.293 1.5z")
 
 
 
@@ -154,7 +137,7 @@ svg.append("path")
 
 
 var location_data = {};
-d3.tsv("./loc.tsv",
+d3.tsv("./data_loc.tsv",
     function (d){
         if (!Object.keys(location_data).includes(d.pid)){
             location_data[d.pid] = [];
@@ -247,7 +230,7 @@ function draw_route(){
 
 
     }
-
+    draw_homes()
     draw_location_series()
 }
 
@@ -356,13 +339,70 @@ function draw_location(x){
 }
 
 
+draw_homes();
+
+function draw_homes(){
+    home_g.html("");
+    d3.tsv("./data_home.tsv",
+        function (d){
+            var x = coordinate_conversion_long(d.long)
+            var y = coordinate_conversion_lat(d.lat)
+
+            var color = "black";
+            if (Object.keys(pids_color).includes(d.id)){
+                color = pids_color[d.id];
+            }
+            console.log(x, y , color)
+
+            var xxx = home_g.append("g")
+                .attr("transform", "translate("+x+", "+y+") scale(0.10, -0.10)");
+            xxx.append("path")
+                .attr("stroke", color)
+                .attr("transform", "")
+                .attr("d", "M2 13.5V7h1v6.5a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5V7h1v6.5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 13.5zm11-11V6l-2-2V2.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5z")
+            xxx.append("path")
+                .attr("stroke", color)
+                .attr("transform", "")
+                .attr("d", "M7.293 1.5a1 1 0 0 1 1.414 0l6.647 6.646a.5.5 0 0 1-.708.708L8 2.207 1.354 8.854a.5.5 0 1 1-.708-.708L7.293 1.5z")
+            xxx.append("text")
+                .attr("transform", "translate(5, 12) scale(0.4, 0.4)")
+                .text(d.id)
+        }
+    )
+}
 
 
 
 
+draw_places();
 
+function draw_places(){
+    plc_g.html("");
+    d3.tsv("./data_place.tsv",
+        function (d){
+            var x = coordinate_conversion_long(d.long)
+            var y = coordinate_conversion_lat(d.lat)
 
+            var color = "black";
 
+            var xxx = plc_g.append("g")
+            xxx.attr("transform", "translate("+x+", "+y+") scale(0.1, -0.1)")
+                .append("path")
+                .attr("stroke", "black")
+                .attr("transform", "")
+                .attr("opacity", "0.4")
+                .attr("d", "M5 1a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1a1 1 0 0 1 1 1v4h3a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H1a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1h3V3a1 1 0 0 1 1-1V1Zm2 14h2v-3H7v3Zm3 0v-3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1v3H5V3h6v12h-1Zm0-14v1H6V1h4Zm2 7v7h3V8h-3Zm-8 7V8H1v7h3Zm4.5-9.966v1.1l.52-.3.433-.25.5.867-.433.25L9 7l.52.3.433.25-.5.866-.433-.25-.52-.3v1.1h-1v-1.1l-.52.3-.433.25-.5-.866.433-.25L7 7l-.52-.3-.433-.25.5-.866.433.25.52.3v-1.1h1ZM2.25 9a.25.25 0 0 0-.25.25v.5c0 .138.112.25.25.25h.5A.25.25 0 0 0 3 9.75v-.5A.25.25 0 0 0 2.75 9h-.5Zm0 2a.25.25 0 0 0-.25.25v.5c0 .138.112.25.25.25h.5a.25.25 0 0 0 .25-.25v-.5a.25.25 0 0 0-.25-.25h-.5ZM2 13.25a.25.25 0 0 1 .25-.25h.5a.25.25 0 0 1 .25.25v.5a.25.25 0 0 1-.25.25h-.5a.25.25 0 0 1-.25-.25v-.5ZM13.25 9a.25.25 0 0 0-.25.25v.5c0 .138.112.25.25.25h.5a.25.25 0 0 0 .25-.25v-.5a.25.25 0 0 0-.25-.25h-.5ZM13 11.25a.25.25 0 0 1 .25-.25h.5a.25.25 0 0 1 .25.25v.5a.25.25 0 0 1-.25.25h-.5a.25.25 0 0 1-.25-.25v-.5Zm.25 1.75a.25.25 0 0 0-.25.25v.5c0 .138.112.25.25.25h.5a.25.25 0 0 0 .25-.25v-.5a.25.25 0 0 0-.25-.25h-.5Z>")
+
+            var x_off = 0
+            var y_off = 25
+            x_off = 0 - d.name.length * 1
+
+            xxx.append("text")
+                .attr("transform", "translate("+x_off+", "+y_off+") scale(0.4, 0.4)")
+                .text(d.name)
+        }
+    )
+}
 
 
 
