@@ -258,10 +258,18 @@ d3.tsv("./data_loc.tsv",
 
 function start(){
     var d = document.getElementById("days").value;
-    day_filtered_start = parseInt(d);
+    day_filtered_start = parseInt(d) - 6;
+
+    if (d<6 || d >19){
+        window.alert("Date out of range (6~19)")
+    }
+
 
     var d = document.getElementById("daye").value;
-    day_filtered_end = parseInt(d);
+    day_filtered_end = parseInt(d) - 6;
+    if (d<6 || d >19){
+        window.alert("Date out of range (6~19)")
+    }
 
     var d = document.getElementById("hours").value;
     second_filter_start = parseInt(d) * 3600;
@@ -653,7 +661,7 @@ function update_pid(){
 
 
 function get_date(){
-    return parseInt(real_time /(24*3600)) + 8
+    return parseInt(real_time /(24*3600)) + 6
 }
 
 function get_hour(){
