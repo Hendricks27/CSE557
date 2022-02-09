@@ -22,36 +22,55 @@
           </button>
           <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-              <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                  Time Filter
-                </a>
-                <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                    <div id="time_filter">
-                        <li>
-                        <label for="days">Day (0-14):</label>
-                        <input type="text" id="days" name="days" required maxlength="2" size="3" value="1">
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                        <label for="daye">Day (0-14):</label>
-                        <input type="text" id="daye" name="daye" required maxlength="2" size="3" value="2">
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                        <label for="hours">Hour Start (0-24):</label>
-                        <input type="text" id="hours" name="hours" required maxlength="2" size="3" value="8">
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                        <label for="houre">Hour End (0-24):</label>
-                        <input type="text" id="houre" name="houre" required maxlength="2" size="3" value="24">
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <button class="btn btn-primary btn-sm" onclick="refresh()">Submit</button>
-                    </div>  
-                </ul>
-              </li>
+                <li class="navbar-text">
+                    <label for="days">Start (Day-Hour):</label>
+                    <input type="text" id="days" name="days" required maxlength="2" size="2" value="8">
+                </li>
+                <li class="navbar-text">
+                    <label for="hours">&nbsp-</label>
+                    <input type="text" id="hours" name="days" required maxlength="2" size="2" value="8">
+                </li>
+
+                <li>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</li>
+
+                <li class="navbar-text">
+                    <label for="daye">End (Day-Hour):</label>
+                    <input type="text" id="daye" name="days" required maxlength="2" size="2" value="8">
+                </li>
+
+                <li class="navbar-text">
+                    <label for="houre">&nbsp-</label>
+                    <input type="text" id="houre" name="days" required maxlength="2" size="2" value="21">
+                </li>
+
+                <li>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</li>
+
+                <li class="collapse navbar-collapse" onclick="start()" id="start">
+                    <b>Start</b>
+                </li>
+
+                <li class="collapse navbar-collapse" onclick="jump_and_pause(-1)" id="rewind" style="visibility: hidden">
+                    &nbsp&nbsp&nbsp&nbsp&nbsp
+                    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-skip-backward" viewBox="0 0 16 16">
+                      <path d="M.5 3.5A.5.5 0 0 1 1 4v3.248l6.267-3.636c.52-.302 1.233.043 1.233.696v2.94l6.267-3.636c.52-.302 1.233.043 1.233.696v7.384c0 .653-.713.998-1.233.696L8.5 8.752v2.94c0 .653-.713.998-1.233.696L1 8.752V12a.5.5 0 0 1-1 0V4a.5.5 0 0 1 .5-.5zm7 1.133L1.696 8 7.5 11.367V4.633zm7.5 0L9.196 8 15 11.367V4.633z"/>
+                    </svg>
+                </li>
+
+                <li class="collapse navbar-collapse" onclick="play_and_pause()" id="play" style="visibility: hidden">
+                    &nbsp&nbsp&nbsp&nbsp&nbsp
+                    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-play" viewBox="0 0 16 16">
+                      <path d="M10.804 8 5 4.633v6.734L10.804 8zm.792-.696a.802.802 0 0 1 0 1.392l-6.363 3.692C4.713 12.69 4 12.345 4 11.692V4.308c0-.653.713-.998 1.233-.696l6.363 3.692z"/>
+                    </svg>
+                </li>
+
+                <li class="collapse navbar-collapse" onclick="jump_and_pause(1)" id="forward" style="visibility: hidden">
+                    &nbsp&nbsp&nbsp&nbsp&nbsp
+                    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-skip-forward" viewBox="0 0 16 16">
+                      <path d="M15.5 3.5a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-1 0V8.752l-6.267 3.636c-.52.302-1.233-.043-1.233-.696v-2.94l-6.267 3.636C.713 12.69 0 12.345 0 11.692V4.308c0-.653.713-.998 1.233-.696L7.5 7.248v-2.94c0-.653.713-.998 1.233-.696L15 7.248V4a.5.5 0 0 1 .5-.5zM1 4.633v6.734L6.804 8 1 4.633zm7.5 0v6.734L14.304 8 8.5 4.633z"/>
+                    </svg>
+                </li>
+
+
             </ul>
             <form class="d-flex">
               <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
@@ -63,8 +82,8 @@
 
     <div id="panel2" style="position: absolute; top: 35px; right: 15px;">
         <div style="height: 50px"></div>
-        <table id="kronos_people">
-        </table>
+        <div id="kronos_people">
+        </div>
         <span id="logger"></span>
     </div>
 

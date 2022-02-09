@@ -20,6 +20,15 @@ var colors = [
     '#ffee11','#6633bb','#ff9900','#1199ff',
     '#ffcc00','#999999','#ff5500','#444']
 
+function hexToRgb(hex) {
+  var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? {
+    r: parseInt(result[1], 16),
+    g: parseInt(result[2], 16),
+    b: parseInt(result[3], 16)
+  } : null;
+}
+
 const main_street = [
     ["Parla", "St"],
     ["Pilau", "St"],
@@ -42,13 +51,27 @@ const main_street = [
 const st_name_rotate = ["Parla", "Pilau", "Spetson", "Taxiarchon", "", "", ""]
 var st_name_counter = {}
 
+var employee_department = {
+    'IT': ['1', '5', '6', '8', '17'],
+    'Engineering': ['2', '3', '7', '9', '11', '14', '18', '19', '25', '26', '27', '28', '33'],
+    'Executive': ['4', '10', '31', '32', '35'],
+    'Security': ['12', '13', '15', '16', '20', '21', '22', '23', '24', '30', '34'],
+    'Facilities': ['29'],
+    'Trucks': [101, 104, 105, 106, 107]
+};
+
+
 var day_filtered_start = 3;
 var day_filtered_end = 3;
 var second_filter_start = 13*3600;
 var second_filter_end   = 16*3600;
-var pids_filtered = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20];
+var pids_filtered = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
 var pids_all = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 101, 104, 105, 106, 107];
 var pids_color = {}
+
+var refreshIntervalId = undefined;
+
+
 
 const svg = d3.select('#svg1')
     .attr("viewBox", "0 0 135 100")
@@ -64,6 +87,7 @@ const rtd_g = svg.append("g");
 const plc_g = svg.append("g");
 const home_g = svg.append("g");
 const clock_g = svg.append("g");
+const time_g = svg.append("g");
 
 
 function focus(x, y, ratio){
@@ -123,7 +147,7 @@ d3.tsv("./data_map.tsv",
             if (st_name_rotate.includes(d.FENAME)){
                 r = " rotate(-90)"
             }
-            console.log(d.FENAME, r)
+
             if (st_name_counter[d.FENAME] % 5 == 2){
                 mapd_g.append("text")
                 .text(d.FENAME + " " + d.FETYPE)
@@ -232,7 +256,7 @@ d3.tsv("./data_loc.tsv",
 
 
 
-function refresh(){
+function start(){
     var d = document.getElementById("days").value;
     day_filtered_start = parseInt(d);
 
@@ -245,10 +269,28 @@ function refresh(){
     var d = document.getElementById("houre").value;
     second_filter_end = parseInt(d) * 3600;
 
-    // pids_filtered = Object.keys(location_data);
     pids_color = {};
     real_time = day_filtered_start*24*3600 + second_filter_start
+
     draw_route();
+
+    document.getElementById("start").style.visibility = "hidden"
+    document.getElementById("rewind").style.visibility = "visible"
+    document.getElementById("play").style.visibility = "visible"
+    document.getElementById("forward").style.visibility = "visible"
+}
+
+
+function reset_person_filter_bg_color(){
+    for (var pid of pids_all){
+        var ele = document.getElementById("pid_name_label_" + pid.toString())
+        var rgbc = hexToRgb(pids_color[pid])
+        if (rgbc == null ){
+            continue
+        }
+        var rgba = "rgba(" + rgbc.r + "," + rgbc.g + "," + rgbc.b + ",0)"
+        ele.style.backgroundColor = rgba
+    }
 }
 
 function draw_route(){
@@ -299,6 +341,8 @@ function draw_route(){
 
     }
 
+
+    reset_person_filter_bg_color()
     draw_homes()
     table_color_update()
     draw_location_series()
@@ -314,23 +358,64 @@ function curve(d){
 function draw_location_series(){
 
     draw_location()
-    setInterval(draw_next_location, update_interval_outside)
+    refreshIntervalId = setInterval(draw_next_location, update_interval_outside)
+
+    document.getElementById("play").innerHTML = "&nbsp&nbsp&nbsp&nbsp&nbsp\<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"30\" height=\"30\" fill=\"currentColor\" class=\"bi bi-pause\" viewBox=\"0 0 16 16\">\n" +
+        "  <path d=\"M6 3.5a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-1 0V4a.5.5 0 0 1 .5-.5zm4 0a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-1 0V4a.5.5 0 0 1 .5-.5z\"/>\n" +
+        "</svg>"
 }
 
 function draw_next_location(){
     real_time += update_interval_inside;
+
+    if (real_time > day_filtered_end*24*3600 + second_filter_end){
+        draw_next_location_pause()
+    }
     draw_location()
 }
+
+function draw_next_location_pause(){
+    clearInterval(refreshIntervalId);
+    refreshIntervalId = undefined;
+
+    document.getElementById("play").innerHTML = "                    &nbsp&nbsp&nbsp&nbsp&nbsp\n" +
+        "                    <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"30\" height=\"30\" fill=\"currentColor\" class=\"bi bi-play\" viewBox=\"0 0 16 16\">\n" +
+        "                      <path d=\"M10.804 8 5 4.633v6.734L10.804 8zm.792-.696a.802.802 0 0 1 0 1.392l-6.363 3.692C4.713 12.69 4 12.345 4 11.692V4.308c0-.653.713-.998 1.233-.696l6.363 3.692z\"/>\n" +
+        "                    </svg>"
+}
+
+
+function jump_and_pause(n){
+    if (refreshIntervalId != undefined){
+        draw_next_location_pause();
+    }
+
+    real_time += 3600 * n;
+    draw_location();
+
+}
+
+function play_and_pause(){
+    if (refreshIntervalId != undefined){
+        draw_next_location_pause();
+    }
+    else{
+        draw_location_series();
+    }
+}
+
+
 
 function draw_location(){
 
     var ts_range = tri_dot_time;
     var valid = false;
-    var colorindex = 0;
 
     rtd_g.html("");
 
     clock();
+    reset_person_filter_bg_color();
+
 
     for (var pid of pids_filtered){
         if (!Object.keys(location_data).includes(pid)){
@@ -340,6 +425,8 @@ function draw_location(){
         var pre_loc = undefined;
         var cur_loc = undefined;
         var fut_loc = undefined;
+
+
 
         for (var dp of location_data[pid]){
 
@@ -360,11 +447,8 @@ function draw_location(){
             if (diff < pre_loc[2]){pre_loc = [dp.long, dp.lat, diff]}
             if (diff > fut_loc[2]){fut_loc = [dp.long, dp.lat, diff]}
 
-
-            valid = true;
-
-
         }
+
 
         if (pre_loc != undefined){
             rtd_g.append("circle")
@@ -385,6 +469,14 @@ function draw_location(){
                 .attr("r", 0.85)
                 .attr("cx", coordinate_conversion_long(cur_loc[0]))
                 .attr("cy", coordinate_conversion_lat(cur_loc[1]));
+
+            var eleBackground = document.getElementById("pid_name_label_" + pid.toString());
+            var rgbc = hexToRgb(pids_color[pid])
+            if (rgbc != null){
+                var rgba = "rgba(" + rgbc.r + "," + rgbc.g + "," + rgbc.b + ",0.7)"
+                eleBackground.style.backgroundColor = rgba
+            }
+
         }
 
         if (fut_loc != undefined){
@@ -398,14 +490,6 @@ function draw_location(){
         }
 
 
-
-
-
-        if (valid){
-            colorindex += 1
-        }
-
-
     }
 
     // log()
@@ -414,7 +498,6 @@ function draw_location(){
 
 
 draw_homes();
-
 function draw_homes(){
     home_g.html("");
     d3.tsv("./data_home.tsv",
@@ -448,7 +531,6 @@ function draw_homes(){
 
 
 draw_places();
-
 function draw_places(){
     plc_g.html("");
     d3.tsv("./data_place.tsv",
@@ -458,13 +540,17 @@ function draw_places(){
 
             var color = "black";
 
-            var xxx = plc_g.append("g")
-            xxx.attr("transform", "translate("+x+", "+y+") scale(0.1, -0.1)")
-                .append("path")
+            var xxx = plc_g.append("g").attr("transform", "translate("+x+", "+y+") scale(0.1, -0.1)")
+            xxx.append("path")
                 .attr("stroke", "black")
                 .attr("transform", "")
                 .attr("opacity", "0.4")
-                .attr("d", "M5 1a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1a1 1 0 0 1 1 1v4h3a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H1a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1h3V3a1 1 0 0 1 1-1V1Zm2 14h2v-3H7v3Zm3 0v-3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1v3H5V3h6v12h-1Zm0-14v1H6V1h4Zm2 7v7h3V8h-3Zm-8 7V8H1v7h3Zm4.5-9.966v1.1l.52-.3.433-.25.5.867-.433.25L9 7l.52.3.433.25-.5.866-.433-.25-.52-.3v1.1h-1v-1.1l-.52.3-.433.25-.5-.866.433-.25L7 7l-.52-.3-.433-.25.5-.866.433.25.52.3v-1.1h1ZM2.25 9a.25.25 0 0 0-.25.25v.5c0 .138.112.25.25.25h.5A.25.25 0 0 0 3 9.75v-.5A.25.25 0 0 0 2.75 9h-.5Zm0 2a.25.25 0 0 0-.25.25v.5c0 .138.112.25.25.25h.5a.25.25 0 0 0 .25-.25v-.5a.25.25 0 0 0-.25-.25h-.5ZM2 13.25a.25.25 0 0 1 .25-.25h.5a.25.25 0 0 1 .25.25v.5a.25.25 0 0 1-.25.25h-.5a.25.25 0 0 1-.25-.25v-.5ZM13.25 9a.25.25 0 0 0-.25.25v.5c0 .138.112.25.25.25h.5a.25.25 0 0 0 .25-.25v-.5a.25.25 0 0 0-.25-.25h-.5ZM13 11.25a.25.25 0 0 1 .25-.25h.5a.25.25 0 0 1 .25.25v.5a.25.25 0 0 1-.25.25h-.5a.25.25 0 0 1-.25-.25v-.5Zm.25 1.75a.25.25 0 0 0-.25.25v.5c0 .138.112.25.25.25h.5a.25.25 0 0 0 .25-.25v-.5a.25.25 0 0 0-.25-.25h-.5Z>")
+                .attr("d", "M12.166 8.94c-.524 1.062-1.234 2.12-1.96 3.07A31.493 31.493 0 0 1 8 14.58a31.481 31.481 0 0 1-2.206-2.57c-.726-.95-1.436-2.008-1.96-3.07C3.304 7.867 3 6.862 3 6a5 5 0 0 1 10 0c0 .862-.305 1.867-.834 2.94zM8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10z")
+            xxx.append("path")
+                .attr("stroke", "black")
+                .attr("transform", "")
+                .attr("opacity", "0.4")
+                .attr("d", "M8 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm0 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6z")
 
             var x_off = 0
             var y_off = 25
@@ -477,46 +563,66 @@ function draw_places(){
     )
 }
 
+fill_table()
+d3.csv("./data_people.csv",
 
-fill_table();
-function fill_table(){
-    var table = document.getElementById("kronos_people");
-
-
-    for (var pid of pids_all){
-
-        if (pid % 2 != 0){
-            var tr = document.createElement("tr");
-        }
-
-        var td1 = document.createElement("td");
-        var td2 = document.createElement("td");
-        var td3 = document.createElement("td");
-
-        var check = document.createElement("input");
-        check.id = "checkbox_" + pid.toString()
-        check.type = "checkbox";
-        check.onclick = update_pid;
-
-        if (pid <= 20){
-            check.checked = true;
-        }
-
-        var tmp = document.createElement("div");
-        tmp.id = "color_label_" + pid.toString()
-        tmp.style = "width: 10px; height: 10px; background-color: black";
-
-        td3.innerText = pid;
-
-        td1.appendChild(check);
-        td2.appendChild(tmp);
-
-        tr.appendChild(td1)
-        tr.appendChild(td2)
-        tr.appendChild(td3)
-
-        table.appendChild(tr)
+    function (d){
+        var ele = document.getElementById("pid_name_label_" + d.CarID.toString());
+        ele.innerText = d.FirstName + " " + d.LastName
+        ele.title = d.CurrentEmploymentTitle
     }
+
+)
+
+function fill_table(){
+    var table_div = document.getElementById("kronos_people");
+    var table = document.createElement("table");
+
+    for (var dep of Object.keys(employee_department)){
+        var tr = document.createElement("tr");
+        tr.innerHTML = "<td></td><td></td><td><b>"+dep+":</b></td>"
+        table.appendChild(tr)
+
+        var dep_pids = employee_department[dep];
+        for (var i in dep_pids){
+            var pid = dep_pids[i]
+
+            if (i % 2 == 0){
+                var tr = document.createElement("tr");
+            }
+
+            var td1 = document.createElement("td");
+            var td2 = document.createElement("td");
+            var td3 = document.createElement("td");
+
+            var check = document.createElement("input");
+            if (pids_filtered.includes(parseInt(pid))){
+                check.checked = true
+            }
+            check.id = "checkbox_" + pid.toString()
+            check.type = "checkbox";
+            check.onclick = update_pid;
+
+            var tmp = document.createElement("div");
+            tmp.id = "color_label_" + pid.toString()
+            tmp.style = "width: 10px; height: 10px; background-color: black";
+
+            td3.innerText = pid;
+            td3.id = "pid_name_label_" + pid.toString()
+
+            td1.appendChild(check);
+            td2.appendChild(tmp);
+
+            tr.appendChild(td1)
+            tr.appendChild(td2)
+            tr.appendChild(td3)
+
+            table.appendChild(tr)
+        }
+
+    }
+    table_div.appendChild(table)
+
 }
 
 
@@ -536,6 +642,7 @@ function table_color_update(){
 function update_pid(){
     pids_filtered = [];
     for (var pid of pids_all){
+        console.log(pid)
         var x = document.getElementById("checkbox_" + pid.toString());
         if (x.checked){
             pids_filtered.push(pid)
