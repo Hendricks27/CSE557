@@ -4,28 +4,12 @@ var zoom_level = 1;
 var real_time = 7 * 24 * 3600 + 12*3600;
 
 
-//
+// each time goes 30s virtually
 var update_interval_inside = 30
 // update every 100ms
 var update_interval_outside = 100
-//
+// display now, 10s before and 10s later
 var tri_dot_time = 10
-
-
-const svg = d3.select('#svg1')
-    .attr("viewBox", "0 0 135 100")
-    .attr("transform", "scale(1.05, -1.05) translate(0,0)")
-    .attr('width',  "100%")
-    .attr('height', "100%")
-    .attr('overflow', "hidden")
-
-
-const map_g = svg.append("g");
-const dot_g = svg.append("g");
-const rtd_g = svg.append("g");
-const plc_g = svg.append("g");
-const home_g = svg.append("g");
-const clock_g = svg.append("g");
 
 
 
@@ -35,6 +19,51 @@ var colors = [
     '#ee1166','#44bb44','#88cc44','#009988',
     '#ffee11','#6633bb','#ff9900','#1199ff',
     '#ffcc00','#999999','#ff5500','#444']
+
+const main_street = [
+    ["Parla", "St"],
+    ["Pilau", "St"],
+    ["Spetson", "St"],
+    ["Carnero", "St"],
+    ["Barwyn", "St"],
+    ["Arkadiou", "St"],
+    ["Ermou", "St"],
+    ["Androutsou", "St"],
+    ["Alfiou", "St"],
+    ["Egeou", "Ave"],
+    ["Ipsilantou", "Ave"],
+    ["Taxiarchon", "Ave"],
+    ["Rist", "Way"],
+    ["Velestinou", "Blvd"],
+    ["", ""],
+    ["", ""]
+];
+
+const st_name_rotate = ["Parla", "Pilau", "Spetson", "Taxiarchon", "", "", ""]
+var st_name_counter = {}
+
+var day_filtered_start = 3;
+var day_filtered_end = 3;
+var second_filter_start = 13*3600;
+var second_filter_end   = 16*3600;
+var pids_filtered = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16];
+var pids_all = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 101, 104, 105, 106, 107];
+var pids_color = {}
+
+const svg = d3.select('#svg1')
+    .attr("viewBox", "0 0 135 100")
+    .attr("transform", "scale(1.0, -1.0) translate(0,0)")
+    .attr('width',  "100%")
+    .attr('height', "100%")
+    .attr('overflow', "hidden")
+
+const map_g = svg.append("g");
+const mapd_g = svg.append("g");
+const dot_g = svg.append("g");
+const rtd_g = svg.append("g");
+const plc_g = svg.append("g");
+const home_g = svg.append("g");
+const clock_g = svg.append("g");
 
 
 function focus(x, y, ratio){
@@ -60,32 +89,14 @@ function coordinate_conversion_lat(y){
     return res
 }
 
+
+
 function coordinate_conversion_long_deviate(x, d){
     return coordinate_conversion_long(x) + d
 }
 function coordinate_conversion_lat_deviate(y, d){
     return coordinate_conversion_lat(y) + d
 }
-
-
-var main_street = [
-    ["Parla", "St"],
-    ["Pilau", "St"],
-    ["Spetson", "St"],
-    ["Carnero", "St"],
-    ["Barwyn", "St"],
-    ["Arkadiou", "St"],
-    ["Ermou", "St"],
-    ["Androutsou", "St"],
-    ["Alfiou", "St"],
-    ["Egeou", "Ave"],
-    ["Ipsilantou", "Ave"],
-    ["Taxiarchon", "Ave"],
-    ["Rist", "Way"],
-    ["Velestinou", "Blvd"],
-    ["", ""],
-    ["", ""]
-];
 
 function is_main_street(n, t){
     for (let pair of main_street){
@@ -104,7 +115,25 @@ d3.tsv("./data_map.tsv",
         if (is_main_street(d.FENAME, d.FETYPE)){
             street_width = street_width * 4;
             street_color = "RGB(247, 223, 136)";
+
+            if (!Object.keys(st_name_counter).includes(d.FENAME)){st_name_counter[d.FENAME] = 0}
+            st_name_counter[d.FENAME] += 1
+
+            var r = "";
+            if (st_name_rotate.includes(d.FENAME)){
+                r = " rotate(-90)"
+            }
+            console.log(d.FENAME, r)
+            if (st_name_counter[d.FENAME] % 5 == 2){
+                mapd_g.append("text")
+                .text(d.FENAME + " " + d.FETYPE)
+                .style("fill", "grey")
+                .attr("transform", "translate("+(coordinate_conversion_long(d.coords[0][0]))+", "+coordinate_conversion_lat(d.coords[0][1]-0.00012)+") scale(0.04, -0.04)" + r)
+
+            }
+
         }
+
         map_g.append("path")
             .datum(d.coords)
             .attr("fill", "none")
@@ -118,12 +147,68 @@ d3.tsv("./data_map.tsv",
                     return coordinate_conversion_lat(coords[1])
                 })
             )
+
+
     },
 
 )
 
 
 
+function geo_line(path){
+    mapd_g.append("path")
+        .datum(path)
+        .attr("fill", "none")
+        .attr("stroke", "black")
+        .attr("stroke-width", 0.4)
+        .attr("d", d3.line()
+            .x(function(coord) {return coordinate_conversion_long(coord[0])})
+            .y(function(coord) {return coordinate_conversion_lat(coord[1])})
+        )
+}
+
+// Long - X-axis - 1km
+geo_line([[24.823, 36.0425], [24.914, 36.0425]])
+geo_line([[24.9, 36.075], [24.9+0.1/8.99, 36.075]])
+geo_line([[24.9, 36.0749], [24.9, 36.076]])
+geo_line([[24.911, 36.0749], [24.911, 36.076]])
+
+// Lat - Y-axis
+geo_line([[24.823, 36.0424], [24.823, 36.096]])
+// Lat 1km geo_line([[24.9, 36.075], [24.9, 36.075+0.06/6.66]])
+
+
+
+mapd_g.append("text")
+    .text("1 KM")
+    .attr("transform", "translate("+(coordinate_conversion_long(24.904))+", "+coordinate_conversion_lat(36.076)+") scale(0.1, -0.1)")
+
+for (var i of [1,2,3,4,5,6,7,8,9]){
+    var x = 24.82 + 0.01*i;
+    geo_line([[x, 36.0425], [x, 36.0430]])
+
+    var xx = coordinate_conversion_long(x)-2
+    var yy = coordinate_conversion_lat(36.0425) - 2.5;
+    mapd_g.append("text")
+        .text(x.toFixed(2))
+        .attr("transform", "translate("+xx+", "+yy+") scale(0.1, -0.1)")
+}
+for (var i of [1,2,3,4,5]){
+    var y = 36.04 + 0.01*i;
+    geo_line([[24.823, y], [24.8236, y]])
+
+    var xx = coordinate_conversion_long(24.823) - 3
+    var yy = coordinate_conversion_lat(y) + 0.3;
+    mapd_g.append("text")
+        .text("36.")
+        .attr("transform", "translate("+xx+", "+yy+") scale(0.1, -0.1)")
+
+    xx = coordinate_conversion_long(24.823) - 3
+    yy = coordinate_conversion_lat(y) - 1.4;
+    mapd_g.append("text")
+        .text("0"+(i+4).toString())
+        .attr("transform", "translate("+xx+", "+yy+") scale(0.1, -0.1)")
+}
 
 
 
@@ -144,15 +229,6 @@ d3.tsv("./data_loc.tsv",
         location_data[d.pid].push(d)
     }
 )
-
-
-var day_filtered_start = 3;
-var day_filtered_end = 3;
-var second_filter_start = 13*3600;
-var second_filter_end   = 16*3600;
-var pids_filtered = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16];
-var pids_all = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 101, 104, 105, 106, 107];
-var pids_color = {}
 
 
 
@@ -332,7 +408,7 @@ function draw_location(){
 
     }
 
-    log()
+    // log()
 
 }
 
@@ -469,17 +545,21 @@ function update_pid(){
 }
 
 
+function get_date(){
+    return parseInt(real_time /(24*3600)) + 8
+}
+
+function get_hour(){
+    return parseInt((real_time % (24*3600)) / 3600);
+}
+
+function get_minute(){
+    return parseInt((real_time % 3600) / 60);
+}
+
 function log(){
     var ele = document.getElementById("logger");
     var s = "";
-
-    var todayts = real_time % (24*3600);
-    var today = parseInt(real_time /(24*3600));
-
-    var h = parseInt(todayts / 3600);
-    var m = parseInt((todayts % 3600) / 60);
-
-    s += "1/" + (today + 8).toString() + "/2014 " + h.toString() +":"+ m.toString()
     ele.innerText = s;
 }
 
@@ -495,7 +575,7 @@ function clock(){
     var h = parseInt(todayts / 3600);
     var m = parseInt((todayts % 3600) / 60);
 
-    s += "1/" + (today + 8).toString() + "/2014 " + h.toString() +":"+ m.toString()
+    s += "1/" + get_date().toString() + "/2014 " + get_hour().toString() +":"+ get_minute().toString()
 
     clock_g.append("text")
         .attr("transform", "translate(80, 80) scale(0.4, -0.4)")
