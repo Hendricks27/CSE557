@@ -4,6 +4,14 @@ var zoom_level = 1;
 var real_time = 7 * 24 * 3600 + 12*3600;
 
 
+//
+var update_interval_inside = 30
+// update every 100ms
+var update_interval_outside = 100
+//
+var tri_dot_time = 10
+
+
 const svg = d3.select('#svg1')
     .attr("viewBox", "0 0 135 100")
     .attr("transform", "scale(1.05, -1.05) translate(0,0)")
@@ -17,6 +25,9 @@ const dot_g = svg.append("g");
 const rtd_g = svg.append("g");
 const plc_g = svg.append("g");
 const home_g = svg.append("g");
+const clock_g = svg.append("g");
+
+
 
 var colors = [
     '#ccdd22', '#ff4422','#9911bb','#00bbdd',
@@ -110,27 +121,7 @@ d3.tsv("./data_map.tsv",
     },
 
 )
-//width="16" height="16" fill="currentColor" class="bi bi-hospital" viewBox="0 0 16 16">
 
-
-
-
-
-// TODO rubbish code
-let x = [[0,0], [100, 100]]
-svg.append("path")
-    .datum(x)
-    .attr("fill", "none")
-    .attr("stroke", "steelblue")
-    .attr("stroke-width", 1)
-    .attr("d", d3.line()
-        .x(function(coord) {
-            return coord[0]
-        })
-        .y(function(coord) {
-            return coord[1]
-        })
-    )
 
 
 
@@ -160,6 +151,7 @@ var day_filtered_end = 3;
 var second_filter_start = 13*3600;
 var second_filter_end   = 16*3600;
 var pids_filtered = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16];
+var pids_all = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 101, 104, 105, 106, 107];
 var pids_color = {}
 
 
@@ -179,7 +171,7 @@ function refresh(){
 
     // pids_filtered = Object.keys(location_data);
     pids_color = {};
-    real_time = (day_filtered_start + 0.5)*24*3600
+    real_time = day_filtered_start*24*3600 + second_filter_start
     draw_route();
 }
 
@@ -230,7 +222,9 @@ function draw_route(){
 
 
     }
+
     draw_homes()
+    table_color_update()
     draw_location_series()
 }
 
@@ -243,22 +237,24 @@ function curve(d){
 
 function draw_location_series(){
 
-    draw_location(10)
-    setInterval(draw_next_location, 100, 10)
+    draw_location()
+    setInterval(draw_next_location, update_interval_outside)
 }
 
-function draw_next_location(t){
-    real_time += t;
-    draw_location(t)
+function draw_next_location(){
+    real_time += update_interval_inside;
+    draw_location()
 }
 
-function draw_location(x){
+function draw_location(){
 
-    var ts_range = x;
+    var ts_range = tri_dot_time;
     var valid = false;
     var colorindex = 0;
 
     rtd_g.html("");
+
+    clock();
 
     for (var pid of pids_filtered){
         if (!Object.keys(location_data).includes(pid)){
@@ -336,6 +332,8 @@ function draw_location(x){
 
     }
 
+    log()
+
 }
 
 
@@ -352,7 +350,6 @@ function draw_homes(){
             if (Object.keys(pids_color).includes(d.id)){
                 color = pids_color[d.id];
             }
-            console.log(x, y , color)
 
             var xxx = home_g.append("g")
                 .attr("transform", "translate("+x+", "+y+") scale(0.10, -0.10)");
@@ -405,9 +402,137 @@ function draw_places(){
 }
 
 
+fill_table();
+function fill_table(){
+    var table = document.getElementById("kronos_people");
+
+
+    for (var pid of pids_all){
+
+        if (pid % 2 != 0){
+            var tr = document.createElement("tr");
+        }
+
+        var td1 = document.createElement("td");
+        var td2 = document.createElement("td");
+        var td3 = document.createElement("td");
+
+        var check = document.createElement("input");
+        check.id = "checkbox_" + pid.toString()
+        check.type = "checkbox";
+        check.onclick = update_pid;
+
+        if (pid <= 16){
+            check.checked = true;
+        }
+
+        var tmp = document.createElement("div");
+        tmp.id = "color_label_" + pid.toString()
+        tmp.style = "width: 10px; height: 10px; background-color: black";
+
+        td3.innerText = pid;
+
+        td1.appendChild(check);
+        td2.appendChild(tmp);
+
+        tr.appendChild(td1)
+        tr.appendChild(td2)
+        tr.appendChild(td3)
+
+        table.appendChild(tr)
+    }
+}
+
+
+function table_color_update(){
+    for (var pid of pids_all){
+        var x = document.getElementById("color_label_" + pid.toString());
+        if (Object.keys(pids_color).includes(pid.toString())){
+            x.style.backgroundColor = pids_color[pid]
+        }
+        else{
+            x.style.backgroundColor = "white"
+        }
+
+    }
+}
+
+function update_pid(){
+    pids_filtered = [];
+    for (var pid of pids_all){
+        var x = document.getElementById("checkbox_" + pid.toString());
+        if (x.checked){
+            pids_filtered.push(pid)
+        }
+
+    }
+}
+
+
+function log(){
+    var ele = document.getElementById("logger");
+    var s = "";
+
+    var todayts = real_time % (24*3600);
+    var today = parseInt(real_time /(24*3600));
+
+    var h = parseInt(todayts / 3600);
+    var m = parseInt((todayts % 3600) / 60);
+
+    s += "1/" + (today + 8).toString() + "/2014 " + h.toString() +":"+ m.toString()
+    ele.innerText = s;
+}
+
+
+function clock(){
+    clock_g.html("")
+
+    var s = "";
+
+    var todayts = real_time % (24*3600);
+    var today = parseInt(real_time /(24*3600));
+
+    var h = parseInt(todayts / 3600);
+    var m = parseInt((todayts % 3600) / 60);
+
+    s += "1/" + (today + 8).toString() + "/2014 " + h.toString() +":"+ m.toString()
+
+    clock_g.append("text")
+        .attr("transform", "translate(80, 80) scale(0.4, -0.4)")
+        .text(s)
+
+}
 
 
 
 
 
 
+
+
+
+
+
+
+
+
+
+
+// TODO rubbish code
+/*
+let x = [[0,0], [100, 100]]
+svg.append("path")
+    .datum(x)
+    .attr("fill", "none")
+    .attr("stroke", "steelblue")
+    .attr("stroke-width", 1)
+    .attr("d", d3.line()
+        .x(function(coord) {
+            return coord[0]
+        })
+        .y(function(coord) {
+            return coord[1]
+        })
+    )
+
+ */
