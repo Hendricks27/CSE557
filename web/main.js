@@ -46,7 +46,7 @@ var day_filtered_start = 3;
 var day_filtered_end = 3;
 var second_filter_start = 13*3600;
 var second_filter_end   = 16*3600;
-var pids_filtered = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16];
+var pids_filtered = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20];
 var pids_all = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 101, 104, 105, 106, 107];
 var pids_color = {}
 
@@ -498,7 +498,7 @@ function fill_table(){
         check.type = "checkbox";
         check.onclick = update_pid;
 
-        if (pid <= 16){
+        if (pid <= 20){
             check.checked = true;
         }
 
