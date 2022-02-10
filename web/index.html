@@ -24,29 +24,29 @@
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="navbar-text">
                     <label for="days">Start (Day-Hour):</label>
-                    <input type="text" id="days" name="days" required maxlength="2" size="2" value="8">
+                    <input type="text" id="days" name="days" required maxlength="2" size="2" value="6">
                 </li>
                 <li class="navbar-text">
                     <label for="hours">&nbsp-</label>
-                    <input type="text" id="hours" name="days" required maxlength="2" size="2" value="8">
+                    <input type="text" id="hours" name="days" required maxlength="2" size="2" value="0">
                 </li>
 
                 <li>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</li>
 
                 <li class="navbar-text">
                     <label for="daye">End (Day-Hour):</label>
-                    <input type="text" id="daye" name="days" required maxlength="2" size="2" value="8">
+                    <input type="text" id="daye" name="days" required maxlength="2" size="2" value="19">
                 </li>
 
                 <li class="navbar-text">
                     <label for="houre">&nbsp-</label>
-                    <input type="text" id="houre" name="days" required maxlength="2" size="2" value="21">
+                    <input type="text" id="houre" name="days" required maxlength="2" size="2" value="23">
                 </li>
 
                 <li>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</li>
 
                 <li class="collapse navbar-collapse" onclick="start()" id="start">
-                    <b>Start</b>
+                    <button class="btn btn-outline-success" type="submit">Start</button>
                 </li>
 
                 <li class="collapse navbar-collapse" onclick="jump_and_pause(-1)" id="rewind" style="visibility: hidden">
@@ -72,6 +72,8 @@
 
 
             </ul>
+
+            <button class="btn btn-outline-success" onclick="set_pid([])" id="clear_people">Clear</button>
             <form class="d-flex">
               <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
               <button class="btn btn-outline-success" type="submit">Search</button>

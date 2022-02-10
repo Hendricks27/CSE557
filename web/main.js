@@ -14,10 +14,10 @@ var tri_dot_time = 10
 
 
 var colors = [
-    '#ccdd22', '#ff4422','#9911bb','#00bbdd',
+    '#1199ff', '#ff4422','#9911bb','#00bbdd',
     '#3344bb','#828080','#00aaff', '#775544',
     '#ee1166','#44bb44','#88cc44','#009988',
-    '#ffee11','#6633bb','#ff9900','#1199ff',
+    '#ffee11','#6633bb','#ff9900','#ccdd22',
     '#ffcc00','#999999','#ff5500','#444']
 
 function hexToRgb(hex) {
@@ -52,11 +52,11 @@ const st_name_rotate = ["Parla", "Pilau", "Spetson", "Taxiarchon", "", "", ""]
 var st_name_counter = {}
 
 var employee_department = {
-    'IT': ['1', '5', '6', '8', '17'],
-    'Engineering': ['2', '3', '7', '9', '11', '14', '18', '19', '25', '26', '27', '28', '33'],
-    'Executive': ['4', '10', '31', '32', '35'],
-    'Security': ['12', '13', '15', '16', '20', '21', '22', '23', '24', '30', '34'],
-    'Facilities': ['29'],
+    'IT': [1, 5, 6, 8, 17],
+    'Engineering': [2, 3, 7, 9, 11, 14, 18, 19, 25, 26, 27, 28, 33],
+    'Executive': [4, 10, 31, 32, 35],
+    'Security': [12, 13, 15, 16, 20, 21, 22, 23, 24, 30, 34],
+    'Facilities': [29],
     'Trucks': [101, 104, 105, 106, 107]
 };
 
@@ -65,11 +65,15 @@ var day_filtered_start = 3;
 var day_filtered_end = 3;
 var second_filter_start = 13*3600;
 var second_filter_end   = 16*3600;
-var pids_filtered = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
+var pids_filtered =  employee_department["IT"];//[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
 var pids_all = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 101, 104, 105, 106, 107];
 var pids_color = {}
 
 var refreshIntervalId = undefined;
+
+
+var location_data = {};
+var location_data_partial = {};
 
 
 
@@ -88,6 +92,8 @@ const plc_g = svg.append("g");
 const home_g = svg.append("g");
 const clock_g = svg.append("g");
 const time_g = svg.append("g");
+
+var log_msg = "";
 
 
 function focus(x, y, ratio){
@@ -236,7 +242,7 @@ for (var i of [1,2,3,4,5]){
 
 
 
-var location_data = {};
+
 d3.tsv("./data_loc.tsv",
     function (d){
         if (!Object.keys(location_data).includes(d.pid)){
@@ -283,9 +289,18 @@ function start(){
     draw_route();
 
     document.getElementById("start").style.visibility = "hidden"
+    document.getElementById("clear_people").style.visibility = "hidden"
     document.getElementById("rewind").style.visibility = "visible"
     document.getElementById("play").style.visibility = "visible"
     document.getElementById("forward").style.visibility = "visible"
+
+    for (var ele of document.getElementsByTagName("input")){
+        if (ele.type == "checkbox"){
+            if(ele.id.startsWith("checkbox_")){
+                ele.style.visibility = "hidden"
+            }
+        }
+    }
 }
 
 
@@ -306,14 +321,14 @@ function draw_route(){
     dot_g.html("");
     var colorindex = 0;
 
-    var diviate = -0.5
-    var diviate_step = 1 / pids_filtered.length
+    var diviate = -0.5;
+    var diviate_step = 1 / pids_filtered.length;
 
     var valid = false;
+    location_data_partial = {};
     for (var pid of pids_filtered){
-        if (!Object.keys(location_data).includes(pid)){
-            // continue
-        }
+
+        location_data_partial[pid] = []
 
         for (var dp of location_data[pid]){
             if (dp.day > day_filtered_end){
@@ -331,12 +346,14 @@ function draw_route(){
                 continue
             }
 
+            location_data_partial[pid].push(dp);
+
             valid = true;
             pids_color[pid] = colors[colorindex]
             dot_g.append("circle")
                 .style("stroke", "none")
                 .style("fill", pids_color[pid])
-                .attr("r", 0.06 + diviate_step * 0.5)
+                .attr("r", 0.06 + (1 / (pids_filtered.length+1)) * 0.5)
                 .attr("cx", coordinate_conversion_long_deviate(dp.long, diviate))
                 .attr("cy", coordinate_conversion_lat_deviate(dp.lat, diviate));
         }
@@ -365,7 +382,6 @@ function curve(d){
 
 function draw_location_series(){
 
-    draw_location()
     refreshIntervalId = setInterval(draw_next_location, update_interval_outside)
 
     document.getElementById("play").innerHTML = "&nbsp&nbsp&nbsp&nbsp&nbsp\<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"30\" height=\"30\" fill=\"currentColor\" class=\"bi bi-pause\" viewBox=\"0 0 16 16\">\n" +
@@ -375,7 +391,6 @@ function draw_location_series(){
 
 function draw_next_location(){
     real_time += update_interval_inside;
-
     if (real_time > day_filtered_end*24*3600 + second_filter_end){
         draw_next_location_pause()
     }
@@ -421,26 +436,31 @@ function draw_location(){
 
     rtd_g.html("");
 
-    clock();
+
     reset_person_filter_bg_color();
+
+    var next_dp_diff = day_filtered_end*24*3600+second_filter_end;
 
 
     for (var pid of pids_filtered){
-        if (!Object.keys(location_data).includes(pid)){
-            // continue
-        }
 
         var pre_loc = undefined;
         var cur_loc = undefined;
         var fut_loc = undefined;
 
-
-
-        for (var dp of location_data[pid]){
+        for (var dp of location_data_partial[pid]){
 
             var this_dp_ts = dp.day * 24 * 3600 + dp.second;
 
-            var diff = Math.abs(this_dp_ts - real_time);
+            var diff_raw = this_dp_ts - real_time;
+            var diff = Math.abs(diff_raw)
+
+            if (diff_raw > 0){
+                if (diff < next_dp_diff){
+                    next_dp_diff = diff
+                }
+            }
+
             if (diff > ts_range){
                 continue
             }
@@ -500,7 +520,21 @@ function draw_location(){
 
     }
 
-    // log()
+
+    if (next_dp_diff > 3600){
+        var msg = "Nothing in " + parseInt(next_dp_diff/3600).toString() + "hour... Skipping..."
+        clock(msg);
+
+        play_and_pause()
+        real_time += (next_dp_diff-50)
+        setTimeout(play_and_pause, 2000)
+
+    }else{
+        clock()
+    }
+
+
+
 
 }
 
@@ -588,7 +622,7 @@ function fill_table(){
 
     for (var dep of Object.keys(employee_department)){
         var tr = document.createElement("tr");
-        tr.innerHTML = "<td></td><td></td><td><b>"+dep+":</b></td>"
+        tr.innerHTML = "<td></td><td></td><td><b onclick='set_pid(["+employee_department[dep].toString()+"])'>"+dep+":</b></td>"
         table.appendChild(tr)
 
         var dep_pids = employee_department[dep];
@@ -648,15 +682,30 @@ function table_color_update(){
 }
 
 function update_pid(){
+
     pids_filtered = [];
     for (var pid of pids_all){
-        console.log(pid)
         var x = document.getElementById("checkbox_" + pid.toString());
         if (x.checked){
             pids_filtered.push(pid)
         }
 
     }
+}
+
+function update_pid_checkbox(){
+    for (var pid of pids_all){
+        document.getElementById("checkbox_" + pid.toString()).checked = false;
+    }
+    for (var pid of pids_filtered){
+        var x = document.getElementById("checkbox_" + pid.toString());
+        x.checked = true
+    }
+}
+
+function set_pid(l){
+    pids_filtered = l
+    update_pid_checkbox()
 }
 
 
@@ -672,30 +721,40 @@ function get_minute(){
     return parseInt((real_time % 3600) / 60);
 }
 
-function log(){
+function log(msg){
     var ele = document.getElementById("logger");
-    var s = "";
-    ele.innerText = s;
+    ele.innerText = msg;
 }
 
 
-function clock(){
+function clock(msg){
     clock_g.html("")
 
-    var s = "";
+    var h = get_hour().toString();
+    var m = get_minute().toString();
+    var d = get_date().toString();
 
-    var todayts = real_time % (24*3600);
-    var today = parseInt(real_time /(24*3600));
+    if (h.length == 1){
+        h = "0"+h
+    }
+    if (m.length == 1){
+        m = "0"+m
+    }
+    if (d.length == 1){
+        d = "0"+d
+    }
 
-    var h = parseInt(todayts / 3600);
-    var m = parseInt((todayts % 3600) / 60);
-
-    s += "1/" + get_date().toString() + "/2014 " + get_hour().toString() +":"+ get_minute().toString()
+    var s = "1/" + d + "/2014 " + h +":"+ m
 
     clock_g.append("text")
-        .attr("transform", "translate(80, 80) scale(0.4, -0.4)")
+        .attr("transform", "translate(99, 90) scale(0.3, -0.3)")
         .text(s)
 
+    if (msg != undefined){
+        clock_g.append("text")
+        .attr("transform", "translate(90, 80) scale(0.2, -0.2)")
+        .text(msg)
+    }
 }
 
 
