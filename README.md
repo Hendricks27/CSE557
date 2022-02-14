@@ -34,11 +34,11 @@ A filled circle with a shallower tail show the location of current timestamp and
 
 
 ### Play/pause/fast forward/rewind functions
-When hoping to pause/restart or fast forward/rewind, there are three buttons for these functions.
+When hoping to pause/restart or fast forward/rewind, there are three buttons on top for these functions.
 
 <img width="176" alt="image" src="https://user-images.githubusercontent.com/93208821/153957525-cb386221-1df6-4aee-ad5b-cb4c4ee438a1.png">
 
-When there are no car movement traces available in the hour, there will be a text reminding the users of the automated fast forward.
+When there are no car movement traces available in the hour, there will be a text reminding users of the automated fast forward.
 
 <img width="546" alt="image" src="https://user-images.githubusercontent.com/93208821/153959704-8d559aec-ff4b-4980-9891-e9e6003377f4.png">
 
