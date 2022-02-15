@@ -1,6 +1,6 @@
 id	lat	long	name
 0	36.05404359	24.90120635	Brew've Been Served
-1	36.06323048	24.88357465	Hallowed Grounds
+1	36.06623048	24.88457465	Hallowed Grounds
 2	36.05602353	24.89257602	Coffee Cameleon
 10	36.06582671	24.8523651	Bean There Done That
 11	36.05448813	24.89995437	Brewed Awakenings
@@ -18,7 +18,7 @@ id	lat	long	name
 23	36.05282959	24.86858716	Shoppers' Delight
 25	36.07212045	24.84134818	Frank's Fuel
 26	36.07103132	24.89556596	Chostus Hotel
-27	36.06785144	24.89913531	General Grocer
+27	36.05702986	24.86157079	General Grocer
 28	36.06902586	24.85957016	Kronos Mart
 29	36.05852747	24.85788532	Octavio's Office Supplies
 30	36.06036398	24.90567258	Roberts and Sons
