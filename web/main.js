@@ -747,12 +747,12 @@ function clock(msg){
     var s = "1/" + d + "/2014 " + h +":"+ m
 
     clock_g.append("text")
-        .attr("transform", "translate(99, 90) scale(0.3, -0.3)")
+        .attr("transform", "translate(92, 80) scale(0.3, -0.3)")
         .text(s)
 
     if (msg != undefined){
         clock_g.append("text")
-        .attr("transform", "translate(90, 80) scale(0.2, -0.2)")
+        .attr("transform", "translate(91, 70) scale(0.2, -0.2)")
         .text(msg)
     }
 }
