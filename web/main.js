@@ -104,6 +104,15 @@ function focus(x, y, ratio){
 }
 
 
+function loading() { 
+    d3.select("#loading").text("Loading...")
+}
+
+function unloading() {
+    d3.select("#loading").text("");
+}
+
+
 // 24.82401 24.91000
 // 36.04502 36.09492
 function coordinate_conversion_long(x){
@@ -136,7 +145,6 @@ function is_main_street(n, t){
     }
     return false
 }
-
 d3.tsv("./data_map.tsv",
     function (d){
         d.coords = JSON.parse(d.coords);
@@ -239,9 +247,6 @@ for (var i of [1,2,3,4,5]){
         .text("0"+(i+4).toString())
         .attr("transform", "translate("+xx+", "+yy+") scale(0.1, -0.1)")
 }
-
-
-
 
 d3.tsv("./data_loc.tsv",
     function (d){
@@ -431,6 +436,7 @@ function play_and_pause(){
 
 function draw_location(){
 
+
     var ts_range = tri_dot_time;
     var valid = false;
 
@@ -567,6 +573,7 @@ function draw_homes(){
                 .text(d.id)
         }
     )
+
 }
 
 
@@ -664,7 +671,6 @@ function fill_table(){
 
     }
     table_div.appendChild(table)
-
 }
 
 
@@ -707,7 +713,6 @@ function set_pid(l){
     pids_filtered = l
     update_pid_checkbox()
 }
-
 
 function get_date(){
     return parseInt(real_time /(24*3600)) + 6
@@ -756,8 +761,6 @@ function clock(msg){
         .text(msg)
     }
 }
-
-
 
 
 

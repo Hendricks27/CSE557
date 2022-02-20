@@ -45,9 +45,13 @@
 
                 <li>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</li>
 
-                <li class="collapse navbar-collapse" onclick="start()" id="start">
+                <li class="collapse navbar-collapse" onclick="loading();start();unloading();" id="start">
                     <button class="btn btn-outline-success" type="submit">Start</button>
                 </li>
+
+                <li class="collapse navbar-collapse">
+                  <h5 id="loading"></h5>
+               </li>
 
                 <li class="collapse navbar-collapse" onclick="jump_and_pause(-1)" id="rewind" style="visibility: hidden">
                     &nbsp&nbsp&nbsp&nbsp&nbsp
