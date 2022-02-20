@@ -67,7 +67,8 @@ var second_filter_start = 13*3600;
 var second_filter_end   = 16*3600;
 var pids_filtered =  employee_department["IT"];//[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
 var pids_all = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 101, 104, 105, 106, 107];
-var pids_color = {}
+var pids_color = {};
+var place_with_images = [0,10001,10004,10007,10010,13,18,20,25,28,1,10002,10005,10008,10011,15,19,21,26,30,10,10003,10006,10009,12,16,2,22, 27];
 
 var refreshIntervalId = undefined;
 
@@ -104,12 +105,27 @@ function focus(x, y, ratio){
 }
 
 
-function loading() { 
-    d3.select("#loading").text("Loading...")
+function loading() {
+    d3.select("#loading")
+        .style("display", "inline")
+
+    var top = (window.innerHeight/2-150).toString() + "px";
+    d3.select("#loading")
+        .append("img")
+        .attr("src", "./loader.gif")
+        .attr("width", "300px")
+        .attr("height", "300px")
+        .style("display", "block")
+        .style("margin", "auto")
+        .style("margin-top", top)
+
+    setTimeout(start, 100)
+
 }
 
 function unloading() {
-    d3.select("#loading").text("");
+    d3.select("#loading")
+        .style("display", "none")
 }
 
 
@@ -306,6 +322,9 @@ function start(){
             }
         }
     }
+
+
+    unloading();
 }
 
 
@@ -590,16 +609,26 @@ function draw_places(){
             var color = "black";
 
             var xxx = plc_g.append("g").attr("transform", "translate("+x+", "+y+") scale(0.1, -0.1)")
-            xxx.append("path")
-                .attr("stroke", "black")
-                .attr("transform", "")
-                .attr("opacity", "0.4")
-                .attr("d", "M12.166 8.94c-.524 1.062-1.234 2.12-1.96 3.07A31.493 31.493 0 0 1 8 14.58a31.481 31.481 0 0 1-2.206-2.57c-.726-.95-1.436-2.008-1.96-3.07C3.304 7.867 3 6.862 3 6a5 5 0 0 1 10 0c0 .862-.305 1.867-.834 2.94zM8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10z")
-            xxx.append("path")
-                .attr("stroke", "black")
-                .attr("transform", "")
-                .attr("opacity", "0.4")
-                .attr("d", "M8 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm0 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6z")
+            if (place_with_images.includes(parseInt(d.id))){
+                xxx.append("svg:image")
+                .attr('x', 0)
+                .attr('y', -20)
+                .attr('width', 40)
+                .attr('height', 40)
+                .attr("xlink:href", "icons/"+d.id+".png")
+            }
+            else{
+                xxx.append("path")
+                    .attr("stroke", "black")
+                    .attr("transform", "")
+                    .attr("opacity", "0.4")
+                    .attr("d", "M12.166 8.94c-.524 1.062-1.234 2.12-1.96 3.07A31.493 31.493 0 0 1 8 14.58a31.481 31.481 0 0 1-2.206-2.57c-.726-.95-1.436-2.008-1.96-3.07C3.304 7.867 3 6.862 3 6a5 5 0 0 1 10 0c0 .862-.305 1.867-.834 2.94zM8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10z")
+                xxx.append("path")
+                    .attr("stroke", "black")
+                    .attr("transform", "")
+                    .attr("opacity", "0.4")
+                    .attr("d", "M8 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm0 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6z")
+            }
 
             var x_off = 0
             var y_off = 25

@@ -45,13 +45,9 @@
 
                 <li>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</li>
 
-                <li class="collapse navbar-collapse" onclick="loading();start();unloading();" id="start">
+                <li class="collapse navbar-collapse" onclick="loading();" id="start">
                     <button class="btn btn-outline-success" type="submit">Start</button>
                 </li>
-
-                <li class="collapse navbar-collapse">
-                  <h5 id="loading"></h5>
-               </li>
 
                 <li class="collapse navbar-collapse" onclick="jump_and_pause(-1)" id="rewind" style="visibility: hidden">
                     &nbsp&nbsp&nbsp&nbsp&nbsp
@@ -95,6 +91,10 @@
 
     <div id="map" style="height: 100vh; width: 135vh; overflow: hidden; background-color: lightgrey; ">
         <svg id="svg1"></svg>
+    </div>
+
+    <div id="loading" style="position: fixed; height: 100vh; width: 100vw; background-color: grey; bottom: 0; left: 0; opacity: 60%; display: none;">
+
     </div>
 
 
