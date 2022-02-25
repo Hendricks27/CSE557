@@ -615,6 +615,7 @@ function draw_places(){
                 .attr('y', -20)
                 .attr('width', 40)
                 .attr('height', 40)
+                .style("opacity", 0.82)
                 .attr("xlink:href", "icons/"+d.id+".png")
             }
             else{
