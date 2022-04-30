@@ -13,20 +13,13 @@
 <div id="content" style="margin: 5px; padding-bottom: 0px; ">
     <div id="input_container" style="width: 70%; margin: auto">
         <p style="width: 100%; ">
-            Input: Glycan in GlycoCT or WURCS sequence:
+            Input: Your CSV or TSV file
         </p>
-        <textarea id="input_seq" rows="18" style="width: 100%; max-width: 100%; height: 50%; display: block; ">RES
-1b:x-dglc-HEX-x:x
-2b:b-dgal-HEX-1:5
-3b:a-dgal-HEX-1:5
-4b:b-dgal-HEX-1:5
-5s:n-acetyl
-LIN
-1:1o(4+1)2d
-2:2o(3+1)3d
-3:3o(3+1)4d
-4:4d(2+1)5n
-        </textarea>
+
+        <form action="file_upload" method="post" enctype="multipart/form-data">
+            <input type="file" name="file">
+            <input type="submit" value="Extract">
+        </form>
         <br>
         <div id="submitoption"></div>
         <br>
@@ -87,6 +80,15 @@ LIN
                 ele.style.display = "none";
             }
         }
+    }
+
+
+    function upload(ele){
+        let photo = document.getElementById("image-file").files[0];
+        let formData = new FormData();
+
+        formData.append("photo", photo);
+        fetch('/file_upload', {method: "POST", body: formData});
     }
 
 

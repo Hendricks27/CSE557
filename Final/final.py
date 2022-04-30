@@ -2,22 +2,24 @@
 import os
 import sys
 import time
+import shutil
+import random
+import string
 import multiprocessing
 from APIFramework import APIFramework, APIFrameworkWithFrontEnd, queue
 
 
+import vis
 
-class GlyLookup(APIFrameworkWithFrontEnd):
+class Final(APIFrameworkWithFrontEnd):
 
     def form_task(self, p):
         res = {}
 
-        p["seq"] = p["seq"].strip()
-        task_str = p["seq"].encode("utf-8")
-        list_id = self.str2hash(task_str)
+        # task_str = p["original_file_name"].encode("utf-8")
+        list_id = self.str2hash( ''.join(random.choice(string.ascii_lowercase) for i in range(100)).encode("utf-8") )
 
         res["id"] = list_id
-        res["seq"] = p["seq"]
 
         return res
 
@@ -36,14 +38,21 @@ class GlyLookup(APIFrameworkWithFrontEnd):
             error = []
             calculation_start_time = time.time()
 
+            try:
+                os.mkdir("./task/")
+            except:
+                pass
 
             list_id = task_detail["id"]
-            seq = str(task_detail["seq"])
             result = []
 
+            working_dir = "./task/" + list_id + "/"
+            input_file = working_dir + "/data.txt"
+            os.mkdir(working_dir)
+            shutil.copy("./input/%s" % list_id, input_file)
 
-            result.append(seq)
-
+            result = vis.your_function(working_dir)
+            result = list(map(lambda x: working_dir+x, result))
 
             calculation_end_time = time.time()
             calculation_time_cost = calculation_end_time - calculation_start_time
@@ -69,7 +78,7 @@ class GlyLookup(APIFrameworkWithFrontEnd):
 if __name__ == '__main__':
     multiprocessing.freeze_support()
 
-    glylookup_app = GlyLookup()
+    glylookup_app = Final()
     glylookup_app.find_config("final.ini")
     glylookup_app.start()
 

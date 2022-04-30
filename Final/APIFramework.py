@@ -74,18 +74,16 @@ class MacOSQueue(multiprocessing.queues.Queue):
 
     def put(self, *args, **kwargs):
         super(MacOSQueue, self).put(*args, **kwargs)
-        self.size.increment(1)
 
     def get(self, *args, **kwargs):
         res = super(MacOSQueue, self).get(*args, **kwargs)
-        self.size.increment(-1)
         return res
 
     def qsize(self):
-        return self.size.value
+        return 1
 
     def empty(self):
-        return not self.qsize()
+        return False
 
     def clear(self):
         while not self.empty():
@@ -118,7 +116,7 @@ class APIFramework(object):
         self._input_file_folder  = self.autopath("input")
         # self._output_file_folder = self.abspath("output")
 
-        self._allowed_file_ext = ["txt", "doc", "docx", "pdf", "jpg", "png"]
+        self._allowed_file_ext = ["txt", "doc", "docx", "pdf", "jpg", "png", "csv", "tsv"]
         self._allow_cors = False
 
         self._worker_para = {}
@@ -588,9 +586,6 @@ class APIFramework(object):
                     continue
 
                 cached = True
-                if r["initial_user_id"] == user_id:
-                    cached = False
-
                 if r["finished"]:
                     r["stat"]["cached"] = cached
                 else:
@@ -600,7 +595,6 @@ class APIFramework(object):
 
                 del r["submission_original"]
                 del r["submission_detail"]
-                del r["initial_user_id"]
 
                 r["id"] = tmp
                 r["task"]["id"] = tmp
@@ -723,7 +717,6 @@ class APIFramework(object):
 
     # @staticmethod
     def api_para(self):
-        self.result_cache_clear()
         if flask.request.method == "GET":
             return flask.request.args
         elif flask.request.method == "POST":
@@ -919,39 +912,10 @@ class APIFramework(object):
             except queue.Empty:
                 time.sleep(1)
 
-            if counter > 599:
-                i = 0
-
-                time_str = ""
-                hours = int(counter / 3600)
-                minutes = int(counter % 3600 / 60)
-
-                if hours > 0:
-                    time_str += "%sh " % hours
-                time_str += "%sm " % minutes
-
-                if counter == next_report:
-                    if counter < 3600:
-                        next_report += 600
-                    else:
-                        next_report += 3600
-
-                    self.output(2, "Worker-%s has been idling for %s" % (pid, time_str))
-                suicide_queue[0].put(pid)
-
-            try:
-                approval = suicide_queue[1].get_nowait()
-                if approval:
-                    self.output(2, "Worker-%s received KILL-SIGNAL, Bye." % pid)
-                    sys.exit()
-            except queue.Empty:
-                continue
-
-
 
     def deamon_process_pool_update(self):
 
-        for pid, proc in self._deamon_process_pool.items():
+        for pid, proc in list(self._deamon_process_pool.items()):
 
             if not proc.is_alive():
                 self.output(0, "Worker-%s was terminated for some reasons... Please check the log for more info" % (pid))
@@ -1009,7 +973,7 @@ class APIFramework(object):
 
 
     def terminate_all(self):
-        for i, p in self._deamon_process_pool.items():
+        for i, p in list(self._deamon_process_pool.items()):
             self.output(0, "Worker-%s is terminated" % (i))
             p.terminate()
             del self._deamon_process_pool[i]
@@ -1078,6 +1042,11 @@ class APIFrameworkWithFrontEnd(APIFramework):
         @app.route('/renderer.js', methods=["GET", "POST"])
         def renderer():
             return open("./htmls/renderer.js").read()
+
+        @app.route('/task/<path:path>')
+        def static_file(path):
+            p = "./task/" + path
+            return flask.send_file(p)
 
     def google_analytics_script(self):
         tag = self.google_analytics_tag_id()
