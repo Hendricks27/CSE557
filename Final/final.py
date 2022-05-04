@@ -9,7 +9,6 @@ import multiprocessing
 from APIFramework import APIFramework, APIFrameworkWithFrontEnd, queue
 
 
-import vis
 
 class Final(APIFrameworkWithFrontEnd):
 
@@ -51,7 +50,7 @@ class Final(APIFrameworkWithFrontEnd):
             os.mkdir(working_dir)
             shutil.copy("./input/%s" % list_id, input_file)
 
-            result = vis.your_function(working_dir)
+            # result = vis.your_function(working_dir)
             result = list(map(lambda x: working_dir+x, result))
 
             calculation_end_time = time.time()

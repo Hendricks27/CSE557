@@ -1022,23 +1022,6 @@ class APIFrameworkWithFrontEnd(APIFramework):
         def footer():
             return flask.render_template("./footer.html", **kwarg)
 
-        @app.route('/submitoption', methods=["GET", "POST"])
-        def submitoption():
-            return flask.render_template("./submitoption.html", **kwarg)
-
-        @app.route('/about', methods=["GET", "POST"])
-        def about():
-            return flask.render_template("./about.html", **kwarg)
-
-
-        @app.route('/glycoapi.js', methods=["GET", "POST"])
-        def glycoapi():
-            return open("./htmls/glycoapi.js").read()
-
-        @app.route('/renderresult.js', methods=["GET", "POST"])
-        def renderresult():
-            return open("./htmls/renderresult.js").read()
-
         @app.route('/renderer.js', methods=["GET", "POST"])
         def renderer():
             return open("./htmls/renderer.js").read()
@@ -1050,15 +1033,7 @@ class APIFrameworkWithFrontEnd(APIFramework):
 
     def google_analytics_script(self):
         tag = self.google_analytics_tag_id()
-        res = """
-<script async src="https://www.googletagmanager.com/gtag/js?id=%s"></script>
-<script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-
-    gtag('config', '%s');
-</script>""" % (tag, tag)
+        res = """""" % (tag, tag)
         return res
 
 
