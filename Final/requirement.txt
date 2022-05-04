@@ -1,2 +1,8 @@
 flask
-
+numpy
+pandas
+matplotlib
+dataframe-image
+seaborn
+wordcloud
+nltk
