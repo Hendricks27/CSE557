@@ -259,7 +259,9 @@ def generate_all_vis(directory='./test/sample2/data.txt', magic_number = 4):
         visualization_name = "density_plot_" + str(graph_id) + ".png"
         density_plot(df.iloc[:,graph_id], visualization_name)
 
-generate_all_vis()
+
+if __name__ == "__main__":
+    generate_all_vis(directory='./test/sample2/data.txt')
 
 
 
