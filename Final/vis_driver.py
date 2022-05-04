@@ -294,7 +294,8 @@ def generate_all_vis(directory='./test/sample2/', magic_number = 4, upper_column
 
 
 if __name__ == "__main__":
-    generate_all_vis()
+    result = generate_all_vis()
+    print(result)
 
 
 
