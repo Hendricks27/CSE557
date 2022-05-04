@@ -9,6 +9,8 @@ import multiprocessing
 from APIFramework import APIFramework, APIFrameworkWithFrontEnd, queue
 
 
+import vis_driver
+
 
 class Final(APIFrameworkWithFrontEnd):
 
@@ -51,7 +53,16 @@ class Final(APIFrameworkWithFrontEnd):
             shutil.copy("./input/%s" % list_id, input_file)
 
             # result = vis.your_function(working_dir)
-            result = list(map(lambda x: working_dir+x, result))
+            # result = list(map(lambda x: working_dir+x, result))
+
+            result_tmp = vis_driver.generate_all_vis(working_dir)
+
+
+            result = []
+            for triple in result_tmp:
+                # image relative path, type, column name
+                result.append(triple[0])
+
 
             calculation_end_time = time.time()
             calculation_time_cost = calculation_end_time - calculation_start_time

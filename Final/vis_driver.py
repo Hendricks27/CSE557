@@ -1,15 +1,17 @@
 ## All the import
-import matplotlib.pyplot as plt
+
+
+import copy
+import nltk
 import numpy as np
 import pandas as pd
-from pandas.plotting import table 
-import copy
-import dataframe_image as dfi
 import seaborn as sns
+import dataframe_image as dfi
+import matplotlib.pyplot as plt
+
 from wordcloud import WordCloud
-import nltk
+from pandas.plotting import table
 from nltk.corpus import stopwords
-import copy
 from itertools import combinations
 
 """
