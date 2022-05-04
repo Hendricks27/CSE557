@@ -172,7 +172,7 @@ It can provide top words and generate wordclouds.
 
 # https://amueller.github.io/word_cloud/auto_examples/simple.html#sphx-glr-auto-examples-simple-py
 # For unstuctured data
-text = open('./hamlet.txt').read()
+# text = open('./hamlet.txt').read()
 #print(text)
 # Generate a word cloud image
 
@@ -240,7 +240,7 @@ def heat_map_visualization(df1, df2, directory="my_visualization.png"):
 # generate all possible visualizations, with C(n, magic_number).
 # Some dimensionality reduction features are applied spefically to the data.
 
-def generate_all_vis(directory='../test/sample2/', magic_number = 4, upper_column_constraint=10):
+def generate_all_vis(directory='./test/sample2/', magic_number = 4, upper_column_constraint=10):
     return_list = []
     if(directory[-1] != '/'):
         directory = directory + '/'
@@ -292,7 +292,9 @@ def generate_all_vis(directory='../test/sample2/', magic_number = 4, upper_colum
 
     return return_list
 
-generate_all_vis()
+
+if __name__ == "__main__":
+    generate_all_vis()
 
 
 
