@@ -6,3 +6,5 @@ dataframe-image
 seaborn
 wordcloud
 nltk
+webdriver-manager
+lxml

@@ -84,7 +84,7 @@ def table_visualization(data, directory='my_visualization.png'):
         return_df['Count of Unique Values'] = len(pd.unique(data))
         real_return_df = pd.DataFrame(data=[return_df])
         df_styled = real_return_df.style.background_gradient()
-        dfi.export(df_styled, directory)
+        dfi.export(df_styled, directory, table_conversion='matplotlib')
     else:
         # Numerical
         return_df['Average'] = data.mean()
@@ -93,7 +93,7 @@ def table_visualization(data, directory='my_visualization.png'):
         return_df['standard deviation'] = data.std()
         real_return_df = pd.DataFrame(data=[return_df])
         df_styled = real_return_df.style.background_gradient()
-        dfi.export(df_styled, directory)
+        dfi.export(df_styled, directory, table_conversion='matplotlib')
     return directory
     
 
