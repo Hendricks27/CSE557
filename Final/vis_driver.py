@@ -318,7 +318,7 @@ def generate_all_vis(directory='../test/sample2/', magic_number = 4, upper_colum
 if __name__ == "__main__":
 
     for i in range(1, 7):
-        result = generate_all_vis(directory='../test/sample%i/'%i)
+        result = generate_all_vis(directory='./test/sample%i/'%i)
         print(result)
 
 
