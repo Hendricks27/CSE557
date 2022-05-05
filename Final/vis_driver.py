@@ -242,17 +242,21 @@ def heat_map_visualization(df1, df2, directory="my_visualization.png"):
 # generate all possible visualizations, with C(n, magic_number).
 # Some dimensionality reduction features are applied spefically to the data.
 
-def generate_all_vis(directory='./test/sample2/', magic_number = 4, upper_column_constraint=10):
-    return_list = []
+def generate_all_vis(directory='../test/sample2/', magic_number = 4, upper_column_constraint=10):
     if(directory[-1] != '/'):
         directory = directory + '/'
     full_data_dir = directory + "data.txt"
-    df = pd.read_csv(full_data_dir, sep=",", header=None)
-    new_header = df.iloc[0] #grab the first row for the header
-    df = df[1:] #take the data less the header row
-    df.columns = new_header #set the header row as the df header
+    df = pd.read_csv(full_data_dir, sep=",", header=0)
+    return_list = []
+    all_columns = df.columns
+    #new_header = df.iloc[0] #grab the first row for the header
+    #df = df[1:] #take the data less the header row
+    #df.columns = new_header #set the header row as the df header
     graph_id = 0
+    # TODO: remove this after testing
     df = df.head(200)
+    for i in range(0, len(all_columns)):
+        df[all_columns[i]] = pd.to_numeric(df[all_columns[i]], errors='ignore')
     
     # Dimension Reduction
     # Could be extended to implement; filtered here arbitarily to save time and effort
@@ -270,7 +274,6 @@ def generate_all_vis(directory='./test/sample2/', magic_number = 4, upper_column
     # read in data from the directory
     # i = 1
     #graph_id = graph_id + 1
-    print(len(df))
     all_list = combination(len(df), 1)
 
     for graph_id in range(0, upper_column_constraint):
