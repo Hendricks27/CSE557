@@ -275,7 +275,6 @@ def generate_all_vis(directory='../test/sample2/', magic_number = 4, upper_colum
     # i = 1
     #graph_id = graph_id + 1
     all_list = combination(len(df), 1)
-
     for graph_id in range(0, upper_column_constraint):
         visualization_name = directory + "table_visualization_" + str(graph_id) + ".png"
         graph_value = table_visualization(df.iloc[:,graph_id], visualization_name)
@@ -292,11 +291,17 @@ def generate_all_vis(directory='../test/sample2/', magic_number = 4, upper_colum
         visualization_name = directory + "density_plot_" + str(graph_id) + ".png"
         graph_value = density_plot(df.iloc[:,graph_id], visualization_name)
         return_list.append([graph_value, "density plot", df.columns[graph_id]])
-        
+    #i = 2
     all_list = combination(len(df), 2)
-
+    # TODO: Change this
+    for i in range(0, min(len(combination(len(df), 2)), 20)):
+        visualization_name = directory + "scatter_plot_" + str(i) + ".png"
+        graph_value = scatter_plot_visualization(df.iloc[:,all_list[i][0]],
+                                                 df.iloc[:,all_list[i][1]], visualization_name)
+        return_list.append([graph_value, "scatter plot", df.columns[graph_id]])
+        #df.columns[graph_id], df.columns[graph_id]
+        graph_id = graph_id + 1
     return return_list
-
 
 if __name__ == "__main__":
     result = generate_all_vis()
