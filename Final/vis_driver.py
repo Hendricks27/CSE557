@@ -245,63 +245,75 @@ def heat_map_visualization(df1, df2, directory="my_visualization.png"):
 def generate_all_vis(directory='../test/sample2/', magic_number = 4, upper_column_constraint=10):
     if(directory[-1] != '/'):
         directory = directory + '/'
-    full_data_dir = directory + "data.txt"
-    df = pd.read_csv(full_data_dir, sep=",", header=0)
-    return_list = []
-    all_columns = df.columns
-    #new_header = df.iloc[0] #grab the first row for the header
-    #df = df[1:] #take the data less the header row
-    #df.columns = new_header #set the header row as the df header
-    graph_id = 0
-    # TODO: remove this after testing
-    df = df.head(200)
-    for i in range(0, len(all_columns)):
-        df[all_columns[i]] = pd.to_numeric(df[all_columns[i]], errors='ignore')
+    full_data_dir = directory + "/data.txt"
+    try:
+        df = pd.read_csv(full_data_dir, sep=",", header=0)
+    except (IOError, NotADirectoryError, ParserError) as e:
+        text = open(full_data_dir).read()
+        return_list = []
+        
+        visualization_name = directory + "wordcloud_visualization_1.png"
+        graph_value = generate_wordcloud(text, visualization_name)
+        return_list.append([graph_value, "word cloud plot", "Standalone Text"])
+        
+        
+        visualization_name = directory + "top_words_visualization_1.png"
+        graph_value = present_top_words(text, visualization_name)
+        return_list.append([graph_value, "top words plot", "Standalone Text"])
+        return return_list
+    else:
+        return_list = []
+        all_columns = df.columns
+        graph_id = 0
+        # TODO: remove this after testing
+        df = df.head(200)
+        for i in range(0, len(all_columns)):
+            df[all_columns[i]] = pd.to_numeric(df[all_columns[i]], errors='ignore')
     
-    # Dimension Reduction
-    # Could be extended to implement; filtered here arbitarily to save time and effort
-    # https://stackoverflow.com/questions/13411544/delete-a-column-from-a-pandas-dataframe
-    # https://stackoverflow.com/questions/31328861/python-pandas-replacing-header-with-top-row
-    # https://stackoverflow.com/questions/19071199/drop-columns-whose-name-contains-a-specific-string-from-pandas-dataframe
+        # Dimension Reduction
+        # Could be extended to implement; filtered here arbitarily to save time and effort
+        # https://stackoverflow.com/questions/13411544/delete-a-column-from-a-pandas-dataframe
+        # https://stackoverflow.com/questions/31328861/python-pandas-replacing-header-with-top-row
+        # https://stackoverflow.com/questions/19071199/drop-columns-whose-name-contains-a-specific-string-from-pandas-dataframe
 
-    # remove correlation
-    df = df[df.columns.drop(list(df.filter(regex='cooc')))]
-    df = df[df.columns.drop(list(df.filter(regex='cellId')))]
-    df = df[df.columns.drop(list(df.filter(regex='gymIn')))]
-    df = df[df.columns.drop(list(df.filter(regex='pokestopIn')))]
-    df = df[df.columns.drop(list(df.filter(regex='id')))]
-    df = df[df.columns.drop(list(df.filter(regex='appearedLocalTime')))]
-    # read in data from the directory
-    # i = 1
-    #graph_id = graph_id + 1
-    all_list = combination(len(df), 1)
-    for graph_id in range(0, upper_column_constraint):
-        visualization_name = directory + "table_visualization_" + str(graph_id) + ".png"
-        graph_value = table_visualization(df.iloc[:,graph_id], visualization_name)
-        return_list.append([graph_value, "table", df.columns[graph_id]])
+        # remove correlation
+        df = df[df.columns.drop(list(df.filter(regex='cooc')))]
+        df = df[df.columns.drop(list(df.filter(regex='cellId')))]
+        df = df[df.columns.drop(list(df.filter(regex='gymIn')))]
+        df = df[df.columns.drop(list(df.filter(regex='pokestopIn')))]
+        df = df[df.columns.drop(list(df.filter(regex='id')))]
+        df = df[df.columns.drop(list(df.filter(regex='appearedLocalTime')))]
+        # read in data from the directory
+        # i = 1
+        #graph_id = graph_id + 1
+        all_list = combination(len(df), 1)
+        for graph_id in range(0, upper_column_constraint):
+            visualization_name = directory + "table_visualization_" + str(graph_id) + ".png"
+            graph_value = table_visualization(df.iloc[:,graph_id], visualization_name)
+            return_list.append([graph_value, "table", df.columns[graph_id]])
         
-        visualization_name = directory + "aligned_bar_visualization_" + str(graph_id) + ".png"
-        graph_value = aligned_bar_visualization(df.iloc[:,graph_id], visualization_name)
-        return_list.append([graph_value, "aligned bar", df.columns[graph_id]])
+            visualization_name = directory + "aligned_bar_visualization_" + str(graph_id) + ".png"
+            graph_value = aligned_bar_visualization(df.iloc[:,graph_id], visualization_name)
+            return_list.append([graph_value, "aligned bar", df.columns[graph_id]])
         
-        visualization_name = directory + "box_plot_" + str(graph_id) + ".png"
-        graph_value = box_plot(df.iloc[:,graph_id], visualization_name)
-        return_list.append([graph_value, "box plot", df.columns[graph_id]])
+            visualization_name = directory + "box_plot_" + str(graph_id) + ".png"
+            graph_value = box_plot(df.iloc[:,graph_id], visualization_name)
+            return_list.append([graph_value, "box plot", df.columns[graph_id]])
         
-        visualization_name = directory + "density_plot_" + str(graph_id) + ".png"
-        graph_value = density_plot(df.iloc[:,graph_id], visualization_name)
-        return_list.append([graph_value, "density plot", df.columns[graph_id]])
-    #i = 2
-    all_list = combination(len(df), 2)
-    # TODO: Change this
-    for i in range(0, min(len(combination(len(df), 2)), 20)):
-        visualization_name = directory + "scatter_plot_" + str(i) + ".png"
-        graph_value = scatter_plot_visualization(df.iloc[:,all_list[i][0]],
+            visualization_name = directory + "density_plot_" + str(graph_id) + ".png"
+            graph_value = density_plot(df.iloc[:,graph_id], visualization_name)
+            return_list.append([graph_value, "density plot", df.columns[graph_id]])
+        #i = 2
+        all_list = combination(len(df), 2)
+        # TODO: Change this
+        for i in range(0, min(len(combination(len(df), 2)), 20)):
+            visualization_name = directory + "scatter_plot_" + str(i) + ".png"
+            graph_value = scatter_plot_visualization(df.iloc[:,all_list[i][0]],
                                                  df.iloc[:,all_list[i][1]], visualization_name)
-        return_list.append([graph_value, "scatter plot", df.columns[graph_id]])
-        #df.columns[graph_id], df.columns[graph_id]
-        graph_id = graph_id + 1
-    return return_list
+            return_list.append([graph_value, "scatter plot", df.columns[graph_id]])
+            #df.columns[graph_id], df.columns[graph_id]
+            graph_id = graph_id + 1
+        return return_list
 
 if __name__ == "__main__":
     result = generate_all_vis()
