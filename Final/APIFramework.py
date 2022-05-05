@@ -1027,8 +1027,13 @@ class APIFrameworkWithFrontEnd(APIFramework):
             return open("./htmls/renderer.js").read()
 
         @app.route('/task/<path:path>')
-        def static_file(path):
+        def static_file1(path):
             p = "./task/" + path
+            return flask.send_file(p)
+
+        @app.route('/sample/<path:path>')
+        def static_fil2(path):
+            p = "./sample/" + path
             return flask.send_file(p)
 
     def google_analytics_script(self):
