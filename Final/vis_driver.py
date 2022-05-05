@@ -1,18 +1,19 @@
 ## All the import
-
-
-import copy
-import nltk
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import seaborn as sns
+from pandas.plotting import table 
+import copy
 import dataframe_image as dfi
-import matplotlib.pyplot as plt
-
+import seaborn as sns
 from wordcloud import WordCloud
-from pandas.plotting import table
+import nltk
 from nltk.corpus import stopwords
+import copy
 from itertools import combinations
+import geopandas as gpd
+#https://stackoverflow.com/questions/35402874/global-name-parseerror-is-not-defined-i-used-try-and-except-to-avoid-it-but-t
+from pandas.errors import ParserError
 
 """
 Helper Functions
