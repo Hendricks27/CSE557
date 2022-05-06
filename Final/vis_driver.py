@@ -8,6 +8,7 @@ import dataframe_image as dfi
 import seaborn as sns
 from wordcloud import WordCloud
 import nltk
+nltk.download('stopwords')
 from nltk.corpus import stopwords
 import copy
 from itertools import combinations
@@ -229,13 +230,12 @@ Suitable for visualization a moderate size of data (2 - 4.)
 """
 
 def scatter_plot_visualization(df1, df2, directory="my_visualization.png"):
-    if(is_categorical(df1) or is_categorical(df2)):
-        return "N/A"
-    else:
-        plt.plot(df1, df2, 'o')
-        plt.savefig(directory)
-        return directory
+    plt.clf()
+    plt.plot(df1, df2, 'o')
+    plt.savefig(directory)
+    return directory
 
+    
 def heat_map_visualization(df1, df2, directory="my_visualization.png"):
     ax = sns.heatmap(uniform_data)
 
