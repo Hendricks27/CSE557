@@ -12,7 +12,7 @@ nltk.download('stopwords')
 from nltk.corpus import stopwords
 import copy
 from itertools import combinations
-import geopandas as gpd
+# import geopandas as gpd
 #https://stackoverflow.com/questions/35402874/global-name-parseerror-is-not-defined-i-used-try-and-except-to-avoid-it-but-t
 from pandas.errors import ParserError
 
@@ -287,33 +287,30 @@ def generate_all_vis(directory='../test/sample2/', magic_number = 4, upper_colum
         # read in data from the directory
         # i = 1
         #graph_id = graph_id + 1
-        all_list = combination(len(df), 1)
+
         for graph_id in range(0, upper_column_constraint):
             visualization_name = directory + "table_visualization_" + str(graph_id) + ".png"
             graph_value = table_visualization(df.iloc[:,graph_id], visualization_name)
-            return_list.append([graph_value, "table", df.columns[graph_id]])
+            return_list.append([graph_value, "table", [df.columns[graph_id]]])
         
             visualization_name = directory + "aligned_bar_visualization_" + str(graph_id) + ".png"
             graph_value = aligned_bar_visualization(df.iloc[:,graph_id], visualization_name)
-            return_list.append([graph_value, "aligned bar", df.columns[graph_id]])
+            return_list.append([graph_value, "aligned bar", [df.columns[graph_id]]])
         
             visualization_name = directory + "box_plot_" + str(graph_id) + ".png"
             graph_value = box_plot(df.iloc[:,graph_id], visualization_name)
-            return_list.append([graph_value, "box plot", df.columns[graph_id]])
+            return_list.append([graph_value, "box plot", [df.columns[graph_id]]])
         
             visualization_name = directory + "density_plot_" + str(graph_id) + ".png"
             graph_value = density_plot(df.iloc[:,graph_id], visualization_name)
-            return_list.append([graph_value, "density plot", df.columns[graph_id]])
+            return_list.append([graph_value, "density plot", [df.columns[graph_id]]])
         #i = 2
-        all_list = combination(len(df), 2)
-        # TODO: Change this
-        for i in range(0, min(len(combination(len(df), 2)), 20)):
+        all_list = combination(len(df.columns), 2)
+        for i in range(0, len(all_list)):
             visualization_name = directory + "scatter_plot_" + str(i) + ".png"
-            graph_value = scatter_plot_visualization(df.iloc[:,all_list[i][0]],
-                                                 df.iloc[:,all_list[i][1]], visualization_name)
-            return_list.append([graph_value, "scatter plot", df.columns[graph_id]])
-            #df.columns[graph_id], df.columns[graph_id]
-            graph_id = graph_id + 1
+            graph_value = scatter_plot_visualization(df.iloc[:,all_list[i][0]], df.iloc[:,all_list[i][1]], visualization_name)
+            return_list.append([graph_value, "scatter plot", [df.columns[all_list[i][0]], df.columns[all_list[i][1]]]])
+
         return return_list
 
 if __name__ == "__main__":
