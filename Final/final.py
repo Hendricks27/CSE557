@@ -8,7 +8,7 @@ import string
 import multiprocessing
 from APIFramework import APIFramework, APIFrameworkWithFrontEnd, queue
 
-
+import evaluation
 import vis_driver
 
 
@@ -47,7 +47,6 @@ class Final(APIFrameworkWithFrontEnd):
 
             list_id = task_detail["id"]
             task_type = task_detail["task_type"]
-            result = []
 
             working_dir = "./task/" + list_id + "/"
             input_file = working_dir + "/data.txt"
@@ -55,13 +54,37 @@ class Final(APIFrameworkWithFrontEnd):
             shutil.copy("./input/%s" % list_id, input_file)
 
             result_tmp = vis_driver.generate_all_vis(working_dir)
-            print("st", task_type)
 
+            """
+            tmpd = {0: 'Correlation', 1: 'Anomalies', 2: 'Clusters', 3: 'Distribution', 4: 'Range'}
+            tmpdr = {}
+            for k,v in tmpd.items():
+                tmpdr[v] = k
+            """
+            vis_selection_tmp = evaluation.main(input_file, task_type)
+
+            vis_selection = {}
+            for v in vis_selection_tmp:
+                graph_type = v.pop(0)
+                columns = tuple(sorted(v))
+                vis_selection[columns] = graph_type
+
+
+            # Single Column Graph: table, aligned bar, box plot, density plot, ???
+            # 2      Column Graph: scatter plot, ???
 
             result = []
             for triple in result_tmp:
                 # image relative path, type, column name
-                result.append(triple[0])
+                columns_name = tuple(sorted(triple[2]))
+
+                print(triple[1], vis_selection.get(columns_name, None))
+
+                if vis_selection.get(columns_name, None) == triple[1]:
+                    result.append(triple[0])
+                else:
+                    pass
+                    #print(columns_name, triple[1], "discarded")
 
 
             calculation_end_time = time.time()

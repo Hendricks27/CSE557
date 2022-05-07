@@ -378,14 +378,14 @@ def map_task_2_plot(task_fig):
     for task_num in range(5):
         for task in task_fig[task_num]:
             if '.' in task:
-                tasklist[tasks[task_num]].append(['scatter', task.split('.')[0], task.split('.')[1]])
+                tasklist[tasks[task_num]].append(['scatter plot', task.split('.')[0], task.split('.')[1]])
             else:
                 if task_num <= 1:
-                    tasklist[tasks[task_num]].append(['bar', task])
+                    tasklist[tasks[task_num]].append(['aligned bar', task])
                 elif task_num >= 4:
-                    tasklist[tasks[task_num]].append(['box', task])
+                    tasklist[tasks[task_num]].append(['box plot', task])
                 else:
-                    tasklist[tasks[task_num]].append(['density', task])
+                    tasklist[tasks[task_num]].append(['density plot', task])
     return tasklist
 
 
@@ -428,5 +428,3 @@ def main(path, num):
     return task_list[num]
 
 
-if __name__ == '__main__':
-    main()

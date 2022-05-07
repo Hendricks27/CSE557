@@ -8,3 +8,4 @@ wordcloud
 nltk
 webdriver-manager
 lxml
+scipy
