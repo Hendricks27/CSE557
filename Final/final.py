@@ -21,6 +21,7 @@ class Final(APIFrameworkWithFrontEnd):
         list_id = self.str2hash( ''.join(random.choice(string.ascii_lowercase) for i in range(100)).encode("utf-8") )
 
         res["id"] = list_id
+        res["task_type"] = p["task_type"]
 
         return res
 
@@ -45,6 +46,7 @@ class Final(APIFrameworkWithFrontEnd):
                 pass
 
             list_id = task_detail["id"]
+            task_type = task_detail["task_type"]
             result = []
 
             working_dir = "./task/" + list_id + "/"
@@ -52,10 +54,8 @@ class Final(APIFrameworkWithFrontEnd):
             os.mkdir(working_dir)
             shutil.copy("./input/%s" % list_id, input_file)
 
-            # result = vis.your_function(working_dir)
-            # result = list(map(lambda x: working_dir+x, result))
-
             result_tmp = vis_driver.generate_all_vis(working_dir)
+            print("st", task_type)
 
 
             result = []

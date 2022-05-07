@@ -21,8 +21,34 @@
             </p>
 
             <form action="file_upload" method="post" enctype="multipart/form-data">
-                <input type="file" name="file">
+                <input type="file" name="file"><br><br>
+
+                <!-------
+                0: Correlation
+                1: Anomalies
+                2: Clusters
+                3: Distribution
+                4: Range
+                --->
+
+                <input type="radio" id="task_type_1" name="task_type" value="Distribution" checked>
+                <label for="task_type_1">Distribution</label><br>
+
+                <input type="radio" id="task_type_2" name="task_type" value="Correlation">
+                <label for="task_type_2">Correlation</label><br>
+
+                <input type="radio" id="task_type_3" name="task_type" value="Anomalies">
+                <label for="task_type_3">Anomalies</label><br>
+
+                <input type="radio" id="task_type_4" name="task_type" value="Clusters">
+                <label for="task_type_4">Clusters</label><br>
+
+                <input type="radio" id="task_type_5" name="task_type" value="Range">
+                <label for="task_type_5">Range</label><br>
+
+                <br><br>
                 <input type="submit" value="Process">
+
             </form>
 
             <br><br><br><br><br><br>

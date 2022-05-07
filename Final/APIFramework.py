@@ -627,14 +627,15 @@ class APIFramework(object):
                 return flask.abort(400)
 
             file = flask.request.files['file']
+            task_type = flask.request.form["task_type"]
+
             filename = werkzeug.utils.secure_filename(file.filename)
 
             if file.filename == '':
                 response = flask.jsonify('No selected file')
-
                 return response
 
-            task_detail = self.form_task({"original_file_name": file.filename})
+            task_detail = self.form_task({"original_file_name": file.filename, "task_type": task_type})
             task_id = task_detail["id"]
 
             if file and self.allow_file_ext(file.filename):
