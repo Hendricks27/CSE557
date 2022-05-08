@@ -12,9 +12,11 @@ nltk.download('stopwords')
 from nltk.corpus import stopwords
 import copy
 from itertools import combinations
-# import geopandas as gpd
+import geopandas as gpd
 #https://stackoverflow.com/questions/35402874/global-name-parseerror-is-not-defined-i-used-try-and-except-to-avoid-it-but-t
 from pandas.errors import ParserError
+import warnings
+warnings.filterwarnings("ignore")
 
 """
 Helper Functions
@@ -73,9 +75,8 @@ density_plot(): (only works on numerical data) shows a density plot on the numer
 # https://stackoverflow.com/questions/43725513/pandas-get-average-dataframe/43725615
 # https://stackoverflow.com/questions/15360925/how-to-get-the-first-column-of-a-pandas-dataframe-as-a-series
 
-# If categorical, count numbers of occurences for each 
+# If categorical, count numbers of occurences for each unique Values
 # sns.countplot
-# Unique Values
 # https://pandas.pydata.org/docs/reference/api/pandas.unique.html
 def table_visualization(data, directory='my_visualization.png'):
     #plt.clf()
@@ -104,7 +105,6 @@ def aligned_bar_visualization(df, directory='my_visualization.png'):
     # https://stackoverflow.com/questions/31037298/pandas-get-column-average-mean
     plt.clf()
     if(is_categorical(df)):
-        #other logic
         # https://stackoverflow.com/questions/5312778/how-to-test-if-a-dictionary-contains-a-specific-key
         x_dict = {}
         x_result = []
@@ -130,7 +130,14 @@ def aligned_bar_visualization(df, directory='my_visualization.png'):
         for i in range(0, magic_num):
             x_result.append(i)
         y_result = [0] * magic_num
-        step = (int)((max_value - min_value) / magic_num + 1)
+        step = 0
+        
+        if(str(max_value) == 'True' or str(max_value) == 'False'):
+            step = 1
+            min_value = 0
+            max_value = 1
+        else:
+            step = (int)((max_value - min_value) / magic_num + 1)
         for i in range(0, magic_num):
             if(i == magic_num - 1):
                 x_result[i] = "["  + str(min_value + step * i) + "," + str(max_value) + "]"
@@ -144,10 +151,10 @@ def aligned_bar_visualization(df, directory='my_visualization.png'):
         plt.savefig(directory)
     return directory
     
-# SOURCE
-# Not suitable for categorical data.
-# https://matplotlib.org/3.5.0/gallery/pyplots/boxplot_demo_pyplot.html
-# https://stackoverflow.com/questions/45926230/how-to-calculate-1st-and-3rd-quartiles
+    # SOURCE
+    # Not suitable for categorical data.
+    # https://matplotlib.org/3.5.0/gallery/pyplots/boxplot_demo_pyplot.html
+    # https://stackoverflow.com/questions/45926230/how-to-calculate-1st-and-3rd-quartiles
 def box_plot(df, directory='my_visualization.png'):
     plt.clf()
     if(is_categorical(df)):
@@ -158,7 +165,7 @@ def box_plot(df, directory='my_visualization.png'):
     fig1.savefig(directory)
     return directory
     
-# https://stackoverflow.com/questions/4150171/how-to-create-a-density-plot-in-matplotlib
+    # https://stackoverflow.com/questions/4150171/how-to-create-a-density-plot-in-matplotlib
 def density_plot(df, directory='my_visualization.png'):
     plt.clf()
     if(is_categorical(df)):
@@ -167,6 +174,7 @@ def density_plot(df, directory='my_visualization.png'):
     plot = sns.kdeplot(df, bw=0.5)
     fig = plot.get_figure()
     fig.savefig(directory) 
+    
     
 """
 Unstructured Data
@@ -177,7 +185,6 @@ It can provide top words and generate wordclouds.
 # https://amueller.github.io/word_cloud/auto_examples/simple.html#sphx-glr-auto-examples-simple-py
 # For unstuctured data
 # text = open('./hamlet.txt').read()
-#print(text)
 # Generate a word cloud image
 
 def generate_wordcloud(text, directory="my_visualization.png"):
@@ -263,54 +270,53 @@ def generate_all_vis(directory='../test/sample2/', magic_number = 4, upper_colum
         return_list.append([graph_value, "top words plot", "Standalone Text"])
         return return_list
     else:
+        # https://stackoverflow.com/questions/45478070/pd-read-csv-gives-me-str-but-need-float
+        #https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.dropna.html
+        df = df.dropna()
+        df.apply(pd.to_numeric, errors='coerce')
         return_list = []
         all_columns = df.columns
         graph_id = 0
-        # TODO: remove this after testing
-        df = df.head(200)
         for i in range(0, len(all_columns)):
             df[all_columns[i]] = pd.to_numeric(df[all_columns[i]], errors='ignore')
-    
-        # Dimension Reduction
-        # Could be extended to implement; filtered here arbitarily to save time and effort
         # https://stackoverflow.com/questions/13411544/delete-a-column-from-a-pandas-dataframe
         # https://stackoverflow.com/questions/31328861/python-pandas-replacing-header-with-top-row
         # https://stackoverflow.com/questions/19071199/drop-columns-whose-name-contains-a-specific-string-from-pandas-dataframe
-
-        # remove correlation
+        
         df = df[df.columns.drop(list(df.filter(regex='cooc')))]
         df = df[df.columns.drop(list(df.filter(regex='cellId')))]
         df = df[df.columns.drop(list(df.filter(regex='gymIn')))]
-        df = df[df.columns.drop(list(df.filter(regex='pokestopIn')))]
+        df = df[df.columns.drop(list(df.filter(regex='pokestop')))]
         df = df[df.columns.drop(list(df.filter(regex='id')))]
         df = df[df.columns.drop(list(df.filter(regex='appearedLocalTime')))]
         # read in data from the directory
         # i = 1
         #graph_id = graph_id + 1
-
-        for graph_id in range(0, upper_column_constraint):
+        all_list = combination(len(df.columns), 1)
+        for graph_id in range(0, len(df.columns)):
             visualization_name = directory + "table_visualization_" + str(graph_id) + ".png"
             graph_value = table_visualization(df.iloc[:,graph_id], visualization_name)
-            return_list.append([graph_value, "table", [df.columns[graph_id]]])
+            return_list.append([graph_value, "table", df.columns[graph_id]])
         
             visualization_name = directory + "aligned_bar_visualization_" + str(graph_id) + ".png"
             graph_value = aligned_bar_visualization(df.iloc[:,graph_id], visualization_name)
-            return_list.append([graph_value, "aligned bar", [df.columns[graph_id]]])
+            return_list.append([graph_value, "aligned bar", df.columns[graph_id]])
         
             visualization_name = directory + "box_plot_" + str(graph_id) + ".png"
             graph_value = box_plot(df.iloc[:,graph_id], visualization_name)
-            return_list.append([graph_value, "box plot", [df.columns[graph_id]]])
+            return_list.append([graph_value, "box plot", df.columns[graph_id]])
         
             visualization_name = directory + "density_plot_" + str(graph_id) + ".png"
             graph_value = density_plot(df.iloc[:,graph_id], visualization_name)
-            return_list.append([graph_value, "density plot", [df.columns[graph_id]]])
+            return_list.append([graph_value, "density plot", df.columns[graph_id]])
         #i = 2
         all_list = combination(len(df.columns), 2)
-        for i in range(0, len(all_list)):
+        for i in range(0, len(combination(len(df.columns), 2))):
             visualization_name = directory + "scatter_plot_" + str(i) + ".png"
-            graph_value = scatter_plot_visualization(df.iloc[:,all_list[i][0]], df.iloc[:,all_list[i][1]], visualization_name)
-            return_list.append([graph_value, "scatter plot", [df.columns[all_list[i][0]], df.columns[all_list[i][1]]]])
-
+            graph_value = scatter_plot_visualization(df.iloc[:,all_list[i][0]],
+                                                 df.iloc[:,all_list[i][1]], visualization_name)
+            return_list.append([graph_value, "scatter plot", 
+                                "" + df.columns[all_list[i][0]] + "," + df.columns[all_list[i][1]]])
         return return_list
 
 if __name__ == "__main__":
