@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import pandas as pd
-import matplotlib as plt
+import matplotlib.pyplot as plt
 from scipy.stats import pearsonr
 from scipy.spatial.distance import pdist, squareform
 from graph import single_column_function, double_column_function, is_categorical, is_numerical
