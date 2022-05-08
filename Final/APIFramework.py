@@ -14,6 +14,7 @@ import atexit
 import hashlib
 import random
 import string
+import shutil
 import datetime
 import multiprocessing
 import multiprocessing.queues
@@ -631,15 +632,25 @@ class APIFramework(object):
 
             filename = werkzeug.utils.secure_filename(file.filename)
 
+            tmp_filename = "./tmp/" + ''.join(random.choice(string.ascii_lowercase) for i in range(100))
+            file.save(tmp_filename)
+            file_hash = self.str2hash(open(tmp_filename).read().encode("utf-8"))
+
             if file.filename == '':
                 response = flask.jsonify('No selected file')
                 return response
 
-            task_detail = self.form_task({"original_file_name": file.filename, "task_type": task_type})
+            task_detail = self.form_task(
+                {
+                    "file_hash": file_hash,
+                    "task_type": task_type
+                }
+            )
             task_id = task_detail["id"]
 
-            if file and self.allow_file_ext(file.filename):
-                file.save(os.path.join(self.input_file_folder(), task_id))
+            if self.allow_file_ext(file.filename):
+                shutil.copy(tmp_filename, os.path.join(self.input_file_folder(), task_id))
+                # file.save()
             else:
                 response = flask.jsonify('File extension is not supported')
 

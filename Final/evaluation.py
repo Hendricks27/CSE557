@@ -1,10 +1,15 @@
+import os
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 from scipy.stats import pearsonr
 from scipy.spatial.distance import pdist, squareform
+from graph import single_column_function, double_column_function, is_categorical, is_numerical
 
 dtype_anno = {0: 'numerical', 1: 'boolean', 2: 'category'}
 tasks = {0: 'Correlation', 1: 'Anomalies', 2: 'Clusters', 3: 'Distribution', 4: 'Range'}
+title = {'bar': 'Bar Graph ', 'violin1': 'Violin Plot ', 'violin2': 'Violin Plot ', 'density': 'Density Plot ',
+         'box': 'Box Plot ', 'scatter': 'Scatter Plot ', 'heatmap': 'Heatmap Plot '}
 
 
 def judge_dtype(df):
@@ -62,7 +67,7 @@ def distributed_sampling(df, indep, dep, dtype_col, dtypes):
     M = df[[indep, dep]]
     result = pd.DataFrame([])
     if (indep in dtype_col[0]) & (dep in dtype_col[0]):             # 2 variables are both numerical
-        rate = round(len(df) / 500)                                 # constant rate sampling for 500 rows
+        rate = max(round(len(df) / 500), 1)                                 # constant rate sampling for 500 rows
         result = M[::rate]
         result_distance = pdist(np.array(result))                            # calculate the eucliean distance
     elif (indep not in dtype_col[0]) & (dep not in dtype_col[0]):   # 2 variables are both categorical/boolean
@@ -104,7 +109,7 @@ def distributed_sampling_1st(df, indep, dtype_col, dtypes):
     M = df[[indep]]
     result = pd.DataFrame([])
     if indep in dtype_col[0]:                                       # 1 variable is numerical
-        rate = round(len(df) / 500)                                 # constant rate sampling for 500 rows
+        rate = max(round(len(df) / 500), 1)                                 # constant rate sampling for 500 rows
         result = M[::rate]
         result_distance = pdist(np.array(result))                   # calculate the eucliean distance
     else:                                                           # 1 variable is both categorical/boolean
@@ -204,7 +209,7 @@ def calculate_overlap(M):
         overlap += num - len(M.loc[ind, col].unique())
     if area == 0:
         area = 1
-    return 1 - overlap / area
+    return abs(1 - overlap / area)
 
 
 def calculate_overlap_1st(M):
@@ -256,7 +261,7 @@ def scagnostic_1st(df, dtype_col, dtypes):
 
             # middle-level QM
             'outlying': np.sum(edge_length > cut_off) / len(df),
-            'skewed': 1 - cut_off * (1 - skewed),
+            'skewed':  1 - cut_off * (1 - skewed),
             'sparse': max(min(q90 * cut_off, 1), 0),
             'striated': striated,
             'stringy': max(edge_length) / np.sum(edge_length),
@@ -315,87 +320,111 @@ def scagnostic_2nd(df, dtype_col, dtypes):
     return measure_list
 
 
-def identify_task_figure(scag_1st, scag_2nd):
-    fig_dic = {0: [], 1: [], 2: [], 3: [], 4: []}
+def identify_task_figure(scag_1st, scag_2nd, df):
+    fig_dic = {'Correlation': [], 'Anomalies': [], 'Clusters': [], 'Distribution': [], 'Range': []}
     # 0: Correlation, 1st: Bar, 2nd: Scatter:
     #       Monotonic, Stringy
     for fig in scag_1st:
         if (scag_1st[fig]['monotonic'] > 0.3) & (scag_1st[fig]['stringy'] > 0.7):
-            fig_dic[0].append(fig)
+            fig_dic['Correlation'].append(fig)
     for fig in scag_2nd:
         if (scag_2nd[fig]['monotonic'] > 0.3) & (scag_2nd[fig]['stringy'] > 0.7):
-            fig_dic[0].append(fig)
+            fig_dic['Correlation'].append(fig)
 
     # 1: Find Anomalies, 1st: Bar, 2nd: Scatter:
     #       Outlying, Sparse, Monotonic (rev)
     for fig in scag_1st:
-        if (scag_1st[fig]['outlying'] > 0.1) & (scag_1st[fig]['sparse'] > 0.7) & (scag_1st[fig]['monotonic'] < 0.3):
-            fig_dic[1].append(fig)
+        if (scag_1st[fig]['outlying'] > 0.03) & (scag_1st[fig]['monotonic'] < 0.3):
+            fig_dic['Anomalies'].append(fig)
     for fig in scag_2nd:
-        if (scag_2nd[fig]['outlying'] > 0.1) & (scag_2nd[fig]['sparse'] > 0.7) & (scag_2nd[fig]['monotonic'] < 0.3):
-            fig_dic[1].append(fig)
+        if (scag_2nd[fig]['outlying'] > 0.03) & (scag_2nd[fig]['monotonic'] < 0.3):
+            fig_dic['Anomalies'].append(fig)
 
     # 2: Find Clusters, 1st: Density, 2nd: Scatter:
     #       Skewed, Outlying (rev), Sparse
     for fig in scag_1st:
-        if (scag_1st[fig]['skewed'] > 0.5) & (scag_1st[fig]['outlying'] < 0.3) & (scag_1st[fig]['sparse'] > 0.5):
-            fig_dic[2].append(fig)
+        if (scag_1st[fig]['skewed'] > 0.5) & (scag_1st[fig]['outlying'] < 0.03):
+            fig_dic['Clusters'].append(fig)
     for fig in scag_2nd:
-        if (scag_2nd[fig]['skewed'] > 0.5) & (scag_2nd[fig]['outlying'] < 0.3) & (scag_2nd[fig]['sparse'] > 0.5):
-            fig_dic[2].append(fig)
+        if (scag_2nd[fig]['skewed'] > 0.5) & (scag_2nd[fig]['outlying'] < 0.03) & \
+                ((len(df[fig.split('.')[0]].unique()) != 2) | (len(df[fig.split('.')[1]].unique()) != 2)):
+            fig_dic['Clusters'].append(fig)
 
     # 3: Distribution, 1st: Density, 2nd: Scatter:
-    #       Stringy, Striated, Skewed, Outlying (rev), Overlapping (rev)
+    #       Stringy, Striated, Outlying (rev), Overlapping (rev)
     for fig in scag_1st:
-        if (scag_1st[fig]['stringy'] > 0.5) & (scag_1st[fig]['overlap'] < 0.3) & (scag_1st[fig]['skewed'] > 0.5) & \
-                (scag_1st[fig]['striated'] > 0.5) & (scag_1st[fig]['outlying'] < 0.3):
-            fig_dic[3].append(fig)
+        if (scag_1st[fig]['stringy'] > 0.1) & (scag_1st[fig]['overlap'] < 0.3) & \
+             (scag_1st[fig]['outlying'] < 0.03):
+            fig_dic['Distribution'].append(fig)
     for fig in scag_2nd:
-        if (scag_2nd[fig]['stringy'] > 0.5) & (scag_2nd[fig]['overlap'] < 0.3) & (scag_2nd[fig]['skewed'] > 0.5) & \
-                (scag_2nd[fig]['striated'] > 0.5) & (scag_2nd[fig]['outlying'] < 0.3):
-            fig_dic[3].append(fig)
+        if (scag_2nd[fig]['stringy'] > 0.1) & (scag_2nd[fig]['overlap'] < 0.3) & \
+             (scag_2nd[fig]['outlying'] < 0.03) & ((len(df[fig.split('.')[0]].unique()) != 2) |
+                                                   (len(df[fig.split('.')[1]].unique()) != 2)):
+            fig_dic['Distribution'].append(fig)
 
     # 4: Range, 1st: Box, 2nd: Scatter:
-    #       Outlying (rev), Striated (rev)
+    #       Outlying (rev)
     for fig in scag_1st:
-        if (scag_1st[fig]['outlying'] < 0.3) & (scag_1st[fig]['striated'] < 0.3):
-            fig_dic[4].append(fig)
+        if (scag_1st[fig]['outlying'] < 0.09) & (scag_1st[fig]['monotonic'] < 0.3):
+            fig_dic['Range'].append(fig)
     for fig in scag_2nd:
-        if (scag_2nd[fig]['outlying'] < 0.3) & (scag_2nd[fig]['striated'] < 0.3):
-            fig_dic[4].append(fig)
+        if (scag_2nd[fig]['outlying'] < 0.09) & (scag_2nd[fig]['monotonic'] < 0.3) & \
+                ((len(df[fig.split('.')[0]].unique()) != 2) | (len(df[fig.split('.')[1]].unique()) != 2)):
+            fig_dic['Range'].append(fig)
 
     return fig_dic
 
 
-def map_task_2_plot(task_fig):
+def map_task_2_plot(df, task_fig, dtypes, dtype_col):
     tasklist = {'Correlation': [], 'Anomalies': [], 'Clusters': [], 'Distribution': [], 'Range': []}
     # Figures available: Bar, Density (smoothed bar graph), scatter, heatmap (chart)
-    # 0: Correlation, 1st: Bar, 2nd: Scatter
-    # 1: Find Anomalies, 1st: Bar, 2nd: Scatter
-    # 2: Find Clusters, 1st: Density, 2nd: Scatter
-    # 3: Distribution, 1st: Density, 2nd: Scatter
-    # 4: Range, 1st: Box, 2nd: Scatter
+    # 0: Correlation, 1st: Bar, 2nd: Heatmap > Violin2 > Scatter
+    # 1: Anomalies, 1st: Box, 2nd: Scatter
+    # 2: Clusters, 1st: Density, 2nd: Scatter
+    # 3: Distribution, 1st: Density, 2nd: Violin2 > Scatter
+    # 4: Range, 1st: Violin_1st, 2nd: Heatmap > Violin2 > Scatter
     for task_num in range(5):
-        for task in task_fig[task_num]:
+        for task in task_fig[tasks[task_num]]:
             if '.' in task:
-                tasklist[tasks[task_num]].append(['scatter plot', task.split('.')[0], task.split('.')[1]])
-            else:
-                if task_num <= 1:
-                    tasklist[tasks[task_num]].append(['aligned bar', task])
-                elif task_num >= 4:
-                    tasklist[tasks[task_num]].append(['box plot', task])
+                col1 = task.split('.')[0]
+                col2 = task.split('.')[1]
+                if (task_num in [0, 4]) & (col1 not in dtype_col[0]) & (col2 not in dtype_col[0]) & \
+                        is_categorical(df[col1]) & is_categorical(df[col2]):
+                    if len(dtypes[col1]['category']) > len(dtypes[col2]['category']):
+                        tasklist[tasks[task_num]].append(['heatmap', [col1, col2]])
+                    else:
+                        tasklist[tasks[task_num]].append(['heatmap', [col2, col1]])
+                elif (task_num in [0, 3, 4]) & (col1 not in dtype_col[0]) & (col2 in dtype_col[0]) & \
+                        is_categorical(df[col1]) & is_numerical(df[col2]):
+                    tasklist[tasks[task_num]].append(['violin2', [col1, col2]])
+                elif (task_num in [0, 3, 4]) & (col1 in dtype_col[0]) & (col2 not in dtype_col[0]) & \
+                        is_categorical(df[col2]) & is_numerical(df[col1]):
+                    tasklist[tasks[task_num]].append(['violin2', [col2, col1]])
                 else:
-                    tasklist[tasks[task_num]].append(['density plot', task])
+                    if ((is_numerical(df[col1])) | (is_categorical(df[col1]))) & \
+                            ((is_numerical(df[col2])) | (is_categorical(df[col2]))):
+                        tasklist[tasks[task_num]].append(['scatter', [col1, col2]])
+            elif (is_numerical(df[task])) | (is_categorical(df[task])):
+                if task_num == 0:
+                    tasklist[tasks[task_num]].append(['bar', [task]])
+                elif task_num == 1:
+                    tasklist[tasks[task_num]].append(['box', [task]])
+                elif task_num == 4:
+                    tasklist[tasks[task_num]].append(['density', [task]])
+                else:
+                    tasklist[tasks[task_num]].append(['density', [task]])
     return tasklist
 
 
-def main(path, num):
+def main(working_dir, file_name, task):
     # file_path = '/Users/haofan/Library/CloudStorage/OneDrive-WashingtonUniversityinSt.Louis/22Spring/AdViz/VizRecom'
-    # df = pd.read_csv(os.path.join(file_path, '300k.csv'))
+    # df = pd.read_csv(os.path.join(file_path, '300k.csv'), low_memory=False)
     # df = pd.read_csv(os.path.join(file_path, 'heart.csv'))
     # df = pd.read_csv(os.path.join(file_path, 'movies.csv'))
     # df = pd.read_csv(os.path.join(file_path, 'SpotifyTop100.csv'))
-    df = pd.read_csv(path)
+    # working_dir = file_path + '/result'
+    path = os.path.join(working_dir, file_name)
+    df = pd.read_csv(path, low_memory=False)
 
     # working_dir = ''
     # df = pd.read_csv(os.path.join(file_path, '300k.txt'), delimiter = "\t")
@@ -405,8 +434,8 @@ def main(path, num):
     # dtype_col: data type-wise dictionary, store the column names
     df = df.dropna()
     dtypes, dtype_col = judge_dtype(df)
-    if len(dtype_col[3]) > 0:
-        print(dtype_col)
+    # if len(dtype_col[3]) > 0:
+    #     print(dtype_col)
 
     # extract key features of each column, and store them in the dtypes dictionary
     dtypes = extract_features(df, dtypes)
@@ -414,6 +443,9 @@ def main(path, num):
         col = []
         for i in range(1, 152):
             col.append('cooc_' + str(i))
+        for i in df.columns:
+            if 'cellId' in i:
+                col.append(i)
         df = df.drop(columns=col)
 
     # extract scagnostics for 1st scatter plots
@@ -423,8 +455,34 @@ def main(path, num):
     scatter_2nd = scagnostic_2nd(df, dtype_col, dtypes)
 
     # task-specific rules
-    task_fig = identify_task_figure(scatter_1st, scatter_2nd)
-    task_list = map_task_2_plot(task_fig)
-    return task_list[num]
+    task_list = identify_task_figure(scatter_1st, scatter_2nd, df)
+    task_fig = map_task_2_plot(df, task_list, dtypes, dtype_col)
+
+    address = []
+    col_used = []
+    if len(task_list[task]) > 0:
+        for num, fig in enumerate(task_fig[task]):
+            file_path = os.path.join(working_dir, fig[0] + task_list[task][num] + '.png')
+            if len(fig[1]) == 1:
+                single_column_function[fig[0]](title[fig[0]] + 'for ' + fig[1][0], df[fig[1][0]], file_path)
+                plt.close('all')
+            elif len(fig[1]) == 2:
+                double_column_function[fig[0]](title[fig[0]] + 'between ' + fig[1][0] + ' and ' + fig[1][1],
+                                               fig[1][0], fig[1][1], list(df[fig[1][0]]), list(df[fig[1][1]]),
+                                               file_path)
+                plt.close('all')
+            address.append(file_path)
+            for col in fig[1]:
+                if col not in col_used:
+                    col_used.append(col)
+    col_unused = []
+    len_df = len(df)
+    for col in df.columns:
+        if col not in col_used:
+            len_col_distinct = len(df[col].unique())
+            col_unused.append([col, len_col_distinct, len_df, len_col_distinct/len_df])
+    return address, col_unused
 
 
+if __name__ == '__main__':
+    main()
