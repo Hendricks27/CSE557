@@ -10,6 +10,11 @@ dtype_anno = {0: 'numerical', 1: 'boolean', 2: 'category'}
 tasks = {0: 'Correlation', 1: 'Anomalies', 2: 'Clusters', 3: 'Distribution', 4: 'Range'}
 title = {'bar': 'Bar Graph ', 'violin1': 'Violin Plot ', 'violin2': 'Violin Plot ', 'density': 'Density Plot ',
          'box': 'Box Plot ', 'scatter': 'Scatter Plot ', 'heatmap': 'Heatmap Plot '}
+count_task_fig = {'Correlation': {'bar': 0, 'violin': 0, 'scatter': 0, 'heatmap': 0},
+                  'Anomalies': {'bar': 0, 'box': 0, 'scatter': 0},
+                  'Clusters': {'bar': 0, 'density': 0, 'scatter': 0},
+                  'Distribution': {'bar': 0, 'density': 0, 'violin': 0, 'scatter': 0},
+                  'Range': {'bar': 0, 'violin': 0, 'scatter': 0, 'heatmap': 0}}
 
 
 def judge_dtype(df):
@@ -66,11 +71,11 @@ def switch_str_2_bool(cate):
 def distributed_sampling(df, indep, dep, dtype_col, dtypes):
     M = df[[indep, dep]]
     result = pd.DataFrame([])
-    if (indep in dtype_col[0]) & (dep in dtype_col[0]):             # 2 variables are both numerical
-        rate = max(round(len(df) / 500), 1)                                 # constant rate sampling for 500 rows
+    if (indep in dtype_col[0]) & (dep in dtype_col[0]):  # 2 variables are both numerical
+        rate = max(round(len(df) / 500), 1)  # constant rate sampling for 500 rows
         result = M[::rate]
-        result_distance = pdist(np.array(result))                            # calculate the eucliean distance
-    elif (indep not in dtype_col[0]) & (dep not in dtype_col[0]):   # 2 variables are both categorical/boolean
+        result_distance = pdist(np.array(result))  # calculate the eucliean distance
+    elif (indep not in dtype_col[0]) & (dep not in dtype_col[0]):  # 2 variables are both categorical/boolean
         for cate_indep in dtypes[indep]['category']:
             for cate_dep in dtypes[dep]['category']:
                 cate_dep_n = switch_str_2_bool(cate_dep)
@@ -80,13 +85,13 @@ def distributed_sampling(df, indep, dep, dtype_col, dtypes):
                         max(1, round(500 * dtypes[indep][cate_indep] * dtypes[dep][cate_dep])), replace=True)])
         result['new_ind'] = result[indep]
         result['new_dep'] = result[dep]
-        for num, cate in enumerate(dtypes[indep]['category']):      # boolean/categorical: one-hot encoding
+        for num, cate in enumerate(dtypes[indep]['category']):  # boolean/categorical: one-hot encoding
             result.loc[result[indep] == cate, 'new_ind'] = float(num)
         for num, cate in enumerate(dtypes[dep]['category']):
             result.loc[result[dep] == cate, 'new_dep'] = float(num)
         result = result[['new_ind', 'new_dep']]
-        result_distance = pdist(np.array(result), 'jaccard')                 # calculate the jaccard distance
-    else:                                                           # one variable numerical, the other categorical
+        result_distance = pdist(np.array(result), 'jaccard')  # calculate the jaccard distance
+    else:  # one variable numerical, the other categorical
         rate = dep
         rate_1 = indep
         if dep in dtype_col[0]:
@@ -101,28 +106,28 @@ def distributed_sampling(df, indep, dep, dtype_col, dtypes):
         for num, cate in enumerate(dtypes[rate]['category']):
             result.loc[result[rate] == cate, 'new'] = num
         result = result[[rate_1, 'new']]
-        result_distance = pdist(np.array(result), 'jaccard')                 # calculate the jaccard distance
+        result_distance = pdist(np.array(result), 'jaccard')  # calculate the jaccard distance
     return result, result_distance
 
 
 def distributed_sampling_1st(df, indep, dtype_col, dtypes):
     M = df[[indep]]
     result = pd.DataFrame([])
-    if indep in dtype_col[0]:                                       # 1 variable is numerical
-        rate = max(round(len(df) / 500), 1)                                 # constant rate sampling for 500 rows
+    if indep in dtype_col[0]:  # 1 variable is numerical
+        rate = max(round(len(df) / 500), 1)  # constant rate sampling for 500 rows
         result = M[::rate]
-        result_distance = pdist(np.array(result))                   # calculate the eucliean distance
-    else:                                                           # 1 variable is both categorical/boolean
+        result_distance = pdist(np.array(result))  # calculate the eucliean distance
+    else:  # 1 variable is both categorical/boolean
         for cate_indep in dtypes[indep]['category']:
             cate_indep_n = switch_str_2_bool(cate_indep)
             if len(M.loc[M[indep] == cate_indep_n, :]) > 0:
                 result = pd.concat([result, M.loc[M[indep] == cate_indep_n, :].sample(
                     max(1, round(500 * dtypes[indep][cate_indep])))])
         result['new_ind'] = result[indep]
-        for num, cate in enumerate(dtypes[indep]['category']):      # boolean/categorical: one-hot encoding
+        for num, cate in enumerate(dtypes[indep]['category']):  # boolean/categorical: one-hot encoding
             result.loc[result[indep] == cate, 'new_ind'] = float(num)
         result = result[['new_ind']]
-        result_distance = pdist(np.array(result), 'jaccard')                 # calculate the jaccard distance
+        result_distance = pdist(np.array(result), 'jaccard')  # calculate the jaccard distance
     return result, result_distance
 
 
@@ -222,7 +227,7 @@ def calculate_overlap_1st(M):
         overlap += 1
     if area == 0:
         area = 1
-    return overlap / area
+    return overlap / area * len(N)
 
 
 def scagnostic_1st(df, dtype_col, dtypes):
@@ -245,6 +250,8 @@ def scagnostic_1st(df, dtype_col, dtypes):
         q25 = np.quantile(edge_length, 0.25)
         q75 = np.quantile(edge_length, 0.75)
         cut_off = q75 - 1.5 * (q75 - q25)
+        if cut_off < 0:
+            cut_off = abs(cut_off)
         q50 = np.quantile(edge_length, 0.5)
         q90 = np.quantile(edge_length, 0.9)
         q10 = np.quantile(edge_length, 0.1)
@@ -261,7 +268,7 @@ def scagnostic_1st(df, dtype_col, dtypes):
 
             # middle-level QM
             'outlying': np.sum(edge_length > cut_off) / len(df),
-            'skewed':  1 - cut_off * (1 - skewed),
+            'skewed': max(1 - cut_off * (1 - skewed), 0),
             'sparse': max(min(q90 * cut_off, 1), 0),
             'striated': striated,
             'stringy': max(edge_length) / np.sum(edge_length),
@@ -292,6 +299,8 @@ def scagnostic_2nd(df, dtype_col, dtypes):
             q25 = np.quantile(edge_length, 0.25)
             q75 = np.quantile(edge_length, 0.75)
             cut_off = q75 - 1.5 * (q75 - q25)
+            if cut_off < 0:
+                cut_off = abs(cut_off)
             q50 = np.quantile(edge_length, 0.5)
             q90 = np.quantile(edge_length, 0.9)
             q10 = np.quantile(edge_length, 0.1)
@@ -309,7 +318,7 @@ def scagnostic_2nd(df, dtype_col, dtypes):
 
                 # middle-level QM
                 'outlying': np.sum(edge_length > cut_off) / len(df),
-                'skewed': 1 - cut_off * (1 - skewed),
+                'skewed': max(1 - cut_off * (1 - skewed), 0),
                 'sparse': max(min(q90 * cut_off, 1), 0),
                 'striated': striated,
                 'stringy': max(edge_length) / np.sum(edge_length),
@@ -322,48 +331,45 @@ def scagnostic_2nd(df, dtype_col, dtypes):
 
 def identify_task_figure(scag_1st, scag_2nd, df):
     fig_dic = {'Correlation': [], 'Anomalies': [], 'Clusters': [], 'Distribution': [], 'Range': []}
-    # 0: Correlation, 1st: Bar, 2nd: Scatter:
-    #       Monotonic, Stringy
-    for fig in scag_1st:
-        if (scag_1st[fig]['monotonic'] > 0.3) & (scag_1st[fig]['stringy'] > 0.7):
-            fig_dic['Correlation'].append(fig)
+    # 0: Correlation, 1st: Bar, 2nd: Heatmap > Violin2 > Scatter
+    #       Monotonic, Stringy, Outlying (rev)
     for fig in scag_2nd:
-        if (scag_2nd[fig]['monotonic'] > 0.3) & (scag_2nd[fig]['stringy'] > 0.7):
+        if (scag_2nd[fig]['monotonic'] > 0.3) & (scag_2nd[fig]['stringy'] > 0.1) & \
+                (scag_2nd[fig]['outlying'] < 0.3):
             fig_dic['Correlation'].append(fig)
 
-    # 1: Find Anomalies, 1st: Bar, 2nd: Scatter:
-    #       Outlying, Sparse, Monotonic (rev)
+    # 1: Anomalies, 1st: Box, 2nd: Scatter
+    #       Outlying, Monotonic (rev)
     for fig in scag_1st:
-        if (scag_1st[fig]['outlying'] > 0.03) & (scag_1st[fig]['monotonic'] < 0.3):
+        if scag_1st[fig]['outlying'] > 0.03:
             fig_dic['Anomalies'].append(fig)
     for fig in scag_2nd:
         if (scag_2nd[fig]['outlying'] > 0.03) & (scag_2nd[fig]['monotonic'] < 0.3):
             fig_dic['Anomalies'].append(fig)
 
-    # 2: Find Clusters, 1st: Density, 2nd: Scatter:
-    #       Skewed, Outlying (rev), Sparse
+    # 2: Clusters, 1st: Density, 2nd: Scatter
+    #       Skewed, Outlying (rev), Striated, Overlapping
     for fig in scag_1st:
-        if (scag_1st[fig]['skewed'] > 0.5) & (scag_1st[fig]['outlying'] < 0.03):
+        if (scag_1st[fig]['skewed'] > 0.5) & (scag_1st[fig]['outlying'] < 0.1) & \
+                (scag_1st[fig]['striated'] > 0.3) & (scag_1st[fig]['overlap'] > 0.3):
             fig_dic['Clusters'].append(fig)
     for fig in scag_2nd:
-        if (scag_2nd[fig]['skewed'] > 0.5) & (scag_2nd[fig]['outlying'] < 0.03) & \
+        if (scag_2nd[fig]['skewed'] > 0.5) & (scag_2nd[fig]['outlying'] < 0.1) & \
                 ((len(df[fig.split('.')[0]].unique()) != 2) | (len(df[fig.split('.')[1]].unique()) != 2)):
             fig_dic['Clusters'].append(fig)
 
-    # 3: Distribution, 1st: Density, 2nd: Scatter:
-    #       Stringy, Striated, Outlying (rev), Overlapping (rev)
+    # 3: Distribution, 1st: Density, 2nd: Violin2 > Scatter
+    #       Outlying (rev)
     for fig in scag_1st:
-        if (scag_1st[fig]['stringy'] > 0.1) & (scag_1st[fig]['overlap'] < 0.3) & \
-             (scag_1st[fig]['outlying'] < 0.03):
+        if scag_1st[fig]['outlying'] < 0.03:
             fig_dic['Distribution'].append(fig)
     for fig in scag_2nd:
-        if (scag_2nd[fig]['stringy'] > 0.1) & (scag_2nd[fig]['overlap'] < 0.3) & \
-             (scag_2nd[fig]['outlying'] < 0.03) & ((len(df[fig.split('.')[0]].unique()) != 2) |
-                                                   (len(df[fig.split('.')[1]].unique()) != 2)):
+        if (scag_2nd[fig]['outlying'] < 0.03) & \
+                ((len(df[fig.split('.')[0]].unique()) != 2) | (len(df[fig.split('.')[1]].unique()) != 2)):
             fig_dic['Distribution'].append(fig)
 
-    # 4: Range, 1st: Box, 2nd: Scatter:
-    #       Outlying (rev)
+    # 4: Range, 1st: Violin_1st, 2nd: Heatmap > Violin2 > Scatter
+    #       Outlying (rev), Monotonic (rev)
     for fig in scag_1st:
         if (scag_1st[fig]['outlying'] < 0.09) & (scag_1st[fig]['monotonic'] < 0.3):
             fig_dic['Range'].append(fig)
@@ -405,14 +411,14 @@ def map_task_2_plot(df, task_fig, dtypes, dtype_col):
                             ((is_numerical(df[col2])) | (is_categorical(df[col2]))):
                         tasklist[tasks[task_num]].append(['scatter', [col1, col2]])
             elif (is_numerical(df[task])) | (is_categorical(df[task])):
-                if task_num == 0:
-                    tasklist[tasks[task_num]].append(['bar', [task]])
-                elif task_num == 1:
+                if (task_num == 1) & is_numerical(df[task]):
                     tasklist[tasks[task_num]].append(['box', [task]])
-                elif task_num == 4:
+                elif (task_num == 4) & is_numerical(df[task]):
+                    tasklist[tasks[task_num]].append(['violin1', [task]])
+                elif (task_num in [2, 3]) & is_numerical(df[task]):
                     tasklist[tasks[task_num]].append(['density', [task]])
                 else:
-                    tasklist[tasks[task_num]].append(['density', [task]])
+                    tasklist[tasks[task_num]].append(['bar', [task]])
     return tasklist
 
 
@@ -422,12 +428,10 @@ def main(working_dir, file_name, task):
     # df = pd.read_csv(os.path.join(file_path, 'heart.csv'))
     # df = pd.read_csv(os.path.join(file_path, 'movies.csv'))
     # df = pd.read_csv(os.path.join(file_path, 'SpotifyTop100.csv'))
+    # df = pd.read_csv(os.path.join(file_path, 'combinedata.csv'))
     # working_dir = file_path + '/result'
     path = os.path.join(working_dir, file_name)
     df = pd.read_csv(path, low_memory=False)
-
-    # working_dir = ''
-    # df = pd.read_csv(os.path.join(file_path, '300k.txt'), delimiter = "\t")
 
     # judge the data type of each column, and store them as dictionary
     # dtypes: column-wise dictionary, store data type information
@@ -458,13 +462,16 @@ def main(working_dir, file_name, task):
     task_list = identify_task_figure(scatter_1st, scatter_2nd, df)
     task_fig = map_task_2_plot(df, task_list, dtypes, dtype_col)
 
+    for f in os.listdir(working_dir):
+        if f.endswith("png"):
+            os.remove(os.path.join(working_dir, f))
     address = []
     col_used = []
     if len(task_list[task]) > 0:
         for num, fig in enumerate(task_fig[task]):
             file_path = os.path.join(working_dir, fig[0] + task_list[task][num] + '.png')
             if len(fig[1]) == 1:
-                single_column_function[fig[0]](title[fig[0]] + 'for ' + fig[1][0], df[fig[1][0]], file_path)
+                single_column_function[fig[0]](title[fig[0]] + 'for ' + fig[1][0], list(df[fig[1][0]]), file_path)
                 plt.close('all')
             elif len(fig[1]) == 2:
                 double_column_function[fig[0]](title[fig[0]] + 'between ' + fig[1][0] + ' and ' + fig[1][1],
@@ -476,13 +483,17 @@ def main(working_dir, file_name, task):
                 if col not in col_used:
                     col_used.append(col)
     col_unused = []
-    len_df = len(df)
+    count_col_df = len(df)
     for col in df.columns:
         if col not in col_used:
-            len_col_distinct = len(df[col].unique())
-            col_unused.append([col, len_col_distinct, len_df, len_col_distinct/len_df])
+            count_col_distinct = len(df[col].unique())
+            col_unused.append([col, count_col_distinct, count_col_df, count_col_distinct / count_col_df])
+
+    for i in range(0, 5):
+        for t in task_fig[tasks[i]]:
+            if 'violin' in t[0]:
+                count_task_fig[tasks[i]]['violin'] += 1
+            else:
+                count_task_fig[tasks[i]][t[0]] += 1
+
     return address, col_unused
-
-
-if __name__ == '__main__':
-    main()
