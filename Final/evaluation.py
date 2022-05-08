@@ -109,7 +109,7 @@ def distributed_sampling_1st(df, indep, dtype_col, dtypes):
     M = df[[indep]]
     result = pd.DataFrame([])
     if indep in dtype_col[0]:                                       # 1 variable is numerical
-        rate = round(len(df) / 500)                                 # constant rate sampling for 500 rows
+        rate = max(round(len(df) / 500), 1)                                 # constant rate sampling for 500 rows
         result = M[::rate]
         result_distance = pdist(np.array(result))                   # calculate the eucliean distance
     else:                                                           # 1 variable is both categorical/boolean
