@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import pandas as pd
 from scipy.stats import pearsonr
@@ -256,7 +257,7 @@ def scagnostic_1st(df, dtype_col, dtypes):
 
             # middle-level QM
             'outlying': np.sum(edge_length > cut_off) / len(df),
-            'skewed': 1 - cut_off * (1 - skewed),
+            'skewed':  1 - cut_off * (1 - skewed),
             'sparse': max(min(q90 * cut_off, 1), 0),
             'striated': striated,
             'stringy': max(edge_length) / np.sum(edge_length),
@@ -329,10 +330,10 @@ def identify_task_figure(scag_1st, scag_2nd):
     # 1: Find Anomalies, 1st: Bar, 2nd: Scatter:
     #       Outlying, Sparse, Monotonic (rev)
     for fig in scag_1st:
-        if (scag_1st[fig]['outlying'] > 0.1) & (scag_1st[fig]['sparse'] > 0.7) & (scag_1st[fig]['monotonic'] < 0.3):
+        if (scag_1st[fig]['outlying'] > 0.1) & (scag_1st[fig]['monotonic'] < 0.3):
             fig_dic[1].append(fig)
     for fig in scag_2nd:
-        if (scag_2nd[fig]['outlying'] > 0.1) & (scag_2nd[fig]['sparse'] > 0.7) & (scag_2nd[fig]['monotonic'] < 0.3):
+        if (scag_2nd[fig]['outlying'] > 0.1) & (scag_2nd[fig]['monotonic'] < 0.3):
             fig_dic[1].append(fig)
 
     # 2: Find Clusters, 1st: Density, 2nd: Scatter:
@@ -428,3 +429,5 @@ def main(path, num):
     return task_list[num]
 
 
+if __name__ == '__main__':
+    main()
