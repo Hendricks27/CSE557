@@ -16,8 +16,8 @@ from matplotlib.patches import Patch
 sns.set_style("whitegrid")
 
 graph_color = "maroon"
-graph_aspect_ratio_long = 6
-graph_aspect_ratio_height = 10
+graph_aspect_ratio_long = 10
+graph_aspect_ratio_height = 6
 
 
 def is_categorical(l):
@@ -55,7 +55,7 @@ def bar(title, data, img_path):
         x = [p[0] for p in sorted(tmp)]
         y = [p[1] for p in sorted(tmp)]
 
-        colors = sns.color_palette('husl', n_colors=len(x))
+        colors = sns.color_palette(n_colors=len(x))
 
         if max(list(map(len, x))) * distinct_count > 100:
             rotate_xlabel = True
@@ -272,14 +272,14 @@ def main(workdir):
 
             # print(col_num1, col_name1, len(col1), is_categorical(col1), is_numerical(col1))
             # print(col_num2, col_name2, len(col2), is_categorical(col2), is_numerical(col2))
+            if set(["appearedLocalTime", "_id"]).intersection(set([col_name1, col_name2])):
+                continue
 
             image_type = "scatter"
             image_title = "%s_vs_%s_(%s)" % (col_name1, col_name2, image_type)
             image_name = image_title + ".png"
             image_path = workdir + image_name
             if is_numerical(col1) and is_numerical(col2):
-                if set(["appearedLocalTime", "_id"]).intersection(set([col_name1, col_name2])):
-                    continue
                 scatter_plot(image_title, col_name1, col_name2, col1, col2, image_path)
 
             image_type = "heatmap"
@@ -319,8 +319,8 @@ double_column_function = {
 if __name__ == "__main__":
 
     for i in range(2, 6):
-        #if i != 2:
-        #    continue
+        if i != 5:
+            continue
 
         workdir = './test/sample%i/' % i
 

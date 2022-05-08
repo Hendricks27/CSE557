@@ -13,22 +13,18 @@
         <div id="header"></div>
 
         <div id="content" style="width: 70%; margin: auto">
-            Your dataset has been submitted successfully.
+            <h3 id="delete_me">Your dataset has been submitted successfully.</h3>
             <h3 id="info">Please wait...</h3>
             <div id="result" href=""></div>
             <div id="list_id" data-list_id="{{list_id}}"></div>
         </div>
-
+        <br><br><br><br><br><br><br><br><br><br><br>
         <div id="footer" style="position: absolute; bottom: 0; width: 100%; height: 80px;"></div>
 
     </div>
 
     <script>
         "use strict";
-
-
-
-
 
         jQuery.get("./header", function (d){
             document.getElementById("header").innerHTML = d;
@@ -48,6 +44,7 @@
         let calculation_time = 0.0;
 
         var result = undefined;
+        var table_data = undefined;
 
         function query(){
             let request_URL = "./retrieve?list_id=" + list_id;
@@ -59,7 +56,8 @@
 
                 if (tmp.finished){
                     calculation_time = Math.floor(tmp.stat.runtime);
-                    result = tmp.result;
+                    result = tmp.result[0];
+                    table_data = tmp.result[1];
                     renderFinalVis();
                 }
                 else{
@@ -85,12 +83,31 @@
             let res_ele = document.getElementById("result");
 
             info.innerText = "Finished! (After " + calculation_time + "s)";
+            info.innerText += ""
+
+            document.getElementById("delete_me").innerText = "";
             for (var imgurl of result){
                 var img_ele = document.createElement("img");
                 img_ele.src = imgurl
-                img_ele.style = "width: 80%; "
+                img_ele.style = "display: block; width: 80%; margin-left: auto; margin-right: auto;"
                 res_ele.appendChild(img_ele)
             }
+
+
+            res_ele.appendChild(document.createElement("br"))
+            let table_title = document.createElement("h3")
+            table_title.innerText = "Undisplayed Columns"
+            table_title.style = "text-align: center; "
+            res_ele.appendChild(table_title)
+
+            let tablex = document.createElement("table");
+            tablex.style = "width: 100%; text-align: center; "
+            tablex.innerHTML = "<tr><th>Column Name</th><th>Distinct Count</th><th>Count</th><th>Ratio</th></tr>"
+            for (let row of table_data){
+                tablex.innerHTML += "<tr><td>"+row[0]+"</td><td>"+row[1].toString()+"</td><td>"+row[2].toString()+"</td><td>"+Math.round((row[3]*100)).toString()+"%</td></tr>"
+            }
+            res_ele.appendChild(tablex)
+
 
         }
 
