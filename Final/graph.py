@@ -108,7 +108,7 @@ def violin_plot1(title, data, img_path):
         data = to_numerical(data)
         sns.violinplot(y=data)
         plt.title(title)
-        plt.savefig(img_path)
+        plt.savefig(img_path, bbox_inches='tight')
     return None
 
 
@@ -119,7 +119,7 @@ def density_plot(title, data, img_path):
         data = to_numerical(data)
         sns.kdeplot(np.array(data), bw=0.5)
         plt.title(title)
-        plt.savefig(img_path)
+        plt.savefig(img_path, bbox_inches='tight')
 
 def box_plot(title, data, img_path):
 
@@ -128,7 +128,7 @@ def box_plot(title, data, img_path):
         data = to_numerical(data)
         sns.boxplot(y=data)
         plt.title(title)
-        plt.savefig(img_path)
+        plt.savefig(img_path, bbox_inches='tight')
     return None
 
 # Double Columns
@@ -142,7 +142,7 @@ def scatter_plot(title, x_label, y_label, x, y, img_path):
     plt.title(title)
     plt.xlabel(x_label)
     plt.ylabel(y_label)
-    plt.savefig(img_path)
+    plt.savefig(img_path, bbox_inches='tight')
     return
 
 
@@ -166,11 +166,11 @@ def heatmap(title, x_label, y_label, x, y, img_path):
         yd[item] = index
 
 
-    count = np.zeros((len(x_distinct), len(y_distinct)))
+    count = np.zeros((len(y_distinct), len(x_distinct)))
     for i in range(total_len):
         x0 = x[i]
         y0 = y[i]
-        count[xd[x0], yd[y0]] += 1
+        count[yd[y0], xd[x0]] += 1
 
     freq = count / total_len * 100
 
@@ -184,14 +184,14 @@ def heatmap(title, x_label, y_label, x, y, img_path):
     cbar = ax.figure.colorbar(im, ax=ax)
     cbar.ax.set_ylabel("", rotation=-90, va="bottom")
 
-    ax.set_xticks(np.arange(len(y_distinct)), labels=y_distinct)
-    ax.set_yticks(np.arange(len(x_distinct)), labels=x_distinct)
+    ax.set_xticks(np.arange(len(x_distinct)), labels=x_distinct)
+    ax.set_yticks(np.arange(len(y_distinct)), labels=y_distinct)
 
     plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
 
     for i in range(len(x_distinct)):
         for j in range(len(y_distinct)):
-            text = ax.text(j, i, "%0.1f"%(freq[i, j]), ha="center", va="center", color="r")
+            text = ax.text(i, j, "%0.1f"%(freq[j, i]), ha="center", va="center", color="r")
 
     ax.set_title(title)
     ax.grid(False)
@@ -200,7 +200,7 @@ def heatmap(title, x_label, y_label, x, y, img_path):
     plt.xlabel(x_label)
     plt.ylabel(y_label)
 
-    plt.savefig(img_path)
+    plt.savefig(img_path, bbox_inches='tight')
     return
 
 def violin_plot2(title, x_label, y_label, x, y, img_path):
@@ -220,7 +220,7 @@ def violin_plot2(title, x_label, y_label, x, y, img_path):
     plt.xlabel(x_label)
     plt.ylabel(y_label)
 
-    plt.savefig(img_path)
+    plt.savefig(img_path, bbox_inches='tight')
 
     return None
 
@@ -254,6 +254,8 @@ def main(workdir):
         image_path = workdir + image_name
         box_plot(col_name + " (%s)" % image_type, col, image_path)
 
+        plt.close('all')
+
 
     for col_num1, col_name1 in enumerate(df.columns):
         for col_num2, col_name2 in enumerate(df.columns):
@@ -286,6 +288,8 @@ def main(workdir):
             image_path = workdir + image_name
             if is_categorical(col1) and is_numerical(col2):
                 violin_plot2(image_title, col_name1, col_name2, col1, col2, image_path)
+
+            plt.close('all')
 
 
     return len(df.columns), len(df)
