@@ -17,7 +17,7 @@ class Final(APIFrameworkWithFrontEnd):
         res = {}
 
         # task_str = p["original_file_name"].encode("utf-8")
-        list_id = self.str2hash( ''.join(random.choice(string.ascii_lowercase) for i in range(100)).encode("utf-8") )
+        list_id = self.str2hash( (p["file_hash"]+p["task_type"]).encode("utf-8") )
 
         res["id"] = list_id
         res["task_type"] = p["task_type"]
