@@ -1,5 +1,6 @@
 
 import os
+import time
 import matplotlib
 matplotlib.rcParams['figure.dpi'] = 300
 matplotlib.use('Agg')
@@ -84,7 +85,7 @@ def bar(title, data, img_path):
         if len(data) / distinct_count > 10 and distinct_count < 80:
             bin_num = distinct_count
 
-        n, bins, patches = plt.hist(data, bin_num, density=True, facecolor=graph_color, alpha=0.75)
+        n, bins, patches = plt.hist(data, bin_num, density=True, facecolor=graph_color)
         plt.ylabel("Frequency")
 
     else:
@@ -137,7 +138,7 @@ def scatter_plot(title, x_label, y_label, x, y, img_path):
     assert len(x) == len(y)
 
     fig = plt.figure()
-    plt.scatter(x, y)
+    plt.scatter(x, y, alpha=0.5, s=0.5)
 
     plt.title(title)
     plt.xlabel(x_label)
@@ -214,11 +215,13 @@ def violin_plot2(title, x_label, y_label, x, y, img_path):
 
     fig = plt.figure()
 
-    sns.violinplot(x=x, y=to_numerical(y))
+    ax = sns.violinplot(x=x, y=to_numerical(y))
 
     plt.title(title)
     plt.xlabel(x_label)
     plt.ylabel(y_label)
+
+    plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
 
     plt.savefig(img_path, bbox_inches='tight')
 
@@ -229,6 +232,7 @@ def violin_plot2(title, x_label, y_label, x, y, img_path):
 def main(workdir):
     data_path = workdir + "data.txt"
     df = pd.read_csv(data_path, low_memory=False)
+    df = df.dropna()
 
     for col_num, col_name in enumerate(df.columns):
         col = list(df.loc[:, col_name])
@@ -273,6 +277,8 @@ def main(workdir):
             image_name = image_title + ".png"
             image_path = workdir + image_name
             if is_numerical(col1) and is_numerical(col2):
+                if set(["appearedLocalTime", "_id"]).intersection(set([col_name1, col_name2])):
+                    continue
                 scatter_plot(image_title, col_name1, col_name2, col1, col2, image_path)
 
             image_type = "heatmap"
@@ -311,7 +317,7 @@ double_column_function = {
 
 if __name__ == "__main__":
 
-    for i in range(2, 6):
+    for i in range(3, 6):
 
         workdir = './test/sample%i/' % i
 
