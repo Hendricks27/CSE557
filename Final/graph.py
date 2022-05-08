@@ -271,21 +271,21 @@ def main(workdir):
             image_name = image_title + ".png"
             image_path = workdir + image_name
             if is_numerical(col1) and is_numerical(col2):
-                scatter_plot(image_title, col_num1, col_num2, col1, col2, image_path)
+                scatter_plot(image_title, col_name1, col_name2, col1, col2, image_path)
 
             image_type = "heatmap"
             image_title = "%s_vs_%s_(%s)" % (col_name1, col_name2, image_type)
             image_name = image_title + ".png"
             image_path = workdir + image_name
             if is_categorical(col1) and is_categorical(col2):
-                heatmap(image_title, col_num1, col_num2, col1, col2, image_path)
+                heatmap(image_title, col_name1, col_name2, col1, col2, image_path)
 
             image_type = "violin2"
             image_title = "%s_vs_%s_(%s)" % (col_name1, col_name2, image_type)
             image_name = image_title + ".png"
             image_path = workdir + image_name
             if is_categorical(col1) and is_numerical(col2):
-                violin_plot2(image_title, col_num1, col_num2, col1, col2, image_path)
+                violin_plot2(image_title, col_name1, col_name2, col1, col2, image_path)
 
 
     return len(df.columns), len(df)
