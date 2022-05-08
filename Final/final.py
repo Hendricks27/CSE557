@@ -52,14 +52,7 @@ class Final(APIFrameworkWithFrontEnd):
             os.mkdir(working_dir)
             shutil.copy("./input/%s" % list_id, input_file)
 
-            # vis_selection_result = evaluation.main(working_dir, "data.txt", task_type)
-            vis_selection_result = (
-                [
-                    './task/35a9ba15da1a5840017a15ecde4f3026/densityyear released.png',
-                    './task/35a9ba15da1a5840017a15ecde4f3026/densitytop year.png',
-                    './task/35a9ba15da1a5840017a15ecde4f3026/densityartist type.png'],
-                [['title', 945, 1000, 0.945], ['artist', 444, 1000, 0.444], ['top genre', 132, 1000, 0.132], ['added', 26, 1000, 0.026], ['bpm', 122, 1000, 0.122], ['nrgy', 80, 1000, 0.08], ['dnce', 68, 1000, 0.068], ['dB', 16, 1000, 0.016], ['live', 67, 1000, 0.067], ['val', 93, 1000, 0.093], ['dur', 176, 1000, 0.176], ['acous', 89, 1000, 0.089], ['spch', 50, 1000, 0.05], ['pop', 55, 1000, 0.055]]
-            )
+            vis_selection_result = evaluation.main(working_dir, "data.txt", task_type)
             result = list(vis_selection_result)
 
 
@@ -90,10 +83,6 @@ if __name__ == '__main__':
     glylookup_app = Final()
     glylookup_app.find_config("final.ini")
     glylookup_app.start()
-
-
-
-
 
 
 

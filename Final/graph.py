@@ -21,7 +21,7 @@ graph_aspect_ratio_height = 6
 
 
 def is_categorical(l):
-    if len(set(l)) <= 20:
+    if len(set(l)) <= 30:
         return True
     return False
 
@@ -138,7 +138,12 @@ def scatter_plot(title, x_label, y_label, x, y, img_path):
     assert len(x) == len(y)
 
     fig = plt.figure(figsize=(graph_aspect_ratio_long, graph_aspect_ratio_height))
-    plt.scatter(x, y, alpha=0.5, s=0.5)
+    dot_size = 10-(9.5/30000)*total_len
+    if dot_size < 0.5:
+        dot_size = 0.5
+    if dot_size > 10:
+        dot_size = 10
+    plt.scatter(x, y, alpha=0.5, s=dot_size)
 
     plt.title(title)
     plt.xlabel(x_label)
@@ -318,9 +323,7 @@ double_column_function = {
 
 if __name__ == "__main__":
 
-    for i in range(2, 6):
-        if i != 5:
-            continue
+    for i in range(2, 7):
 
         workdir = './test/sample%i/' % i
 

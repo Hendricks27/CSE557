@@ -1,6 +1,6 @@
 #!/bin/bash
 
-tag="V0.0.2"
+tag="V1.0.1"
 
 docker build -t wenjin27/visfinal:$tag -t wenjin27/visfinal:latest ./
 
