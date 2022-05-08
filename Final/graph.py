@@ -16,8 +16,8 @@ from matplotlib.patches import Patch
 sns.set_style("whitegrid")
 
 graph_color = "maroon"
-graph_aspect_ratio_long = 10
-graph_aspect_ratio_height = 6
+graph_aspect_ratio_long = 6
+graph_aspect_ratio_height = 10
 
 
 def is_categorical(l):
@@ -103,7 +103,7 @@ def bar(title, data, img_path):
 
 def violin_plot1(title, data, img_path):
 
-    plt.figure()
+    plt.figure(figsize=(graph_aspect_ratio_long, graph_aspect_ratio_height))
 
     if is_numerical(data):
         data = to_numerical(data)
@@ -115,7 +115,7 @@ def violin_plot1(title, data, img_path):
 
 def density_plot(title, data, img_path):
 
-    plt.figure()
+    plt.figure(figsize=(graph_aspect_ratio_long, graph_aspect_ratio_height))
     if is_numerical(data):
         data = to_numerical(data)
         sns.kdeplot(np.array(data), bw=0.5)
@@ -124,7 +124,7 @@ def density_plot(title, data, img_path):
 
 def box_plot(title, data, img_path):
 
-    plt.figure()
+    plt.figure(figsize=(graph_aspect_ratio_long, graph_aspect_ratio_height))
     if is_numerical(data):
         data = to_numerical(data)
         sns.boxplot(y=data)
@@ -137,12 +137,13 @@ def scatter_plot(title, x_label, y_label, x, y, img_path):
     total_len = len(x)
     assert len(x) == len(y)
 
-    fig = plt.figure()
+    fig = plt.figure(figsize=(graph_aspect_ratio_long, graph_aspect_ratio_height))
     plt.scatter(x, y, alpha=0.5, s=0.5)
 
     plt.title(title)
     plt.xlabel(x_label)
     plt.ylabel(y_label)
+    plt.xticks(rotation=45)
     plt.savefig(img_path, bbox_inches='tight')
     return
 
@@ -154,7 +155,7 @@ def heatmap(title, x_label, y_label, x, y, img_path):
     total_len = len(x)
     assert len(x) == len(y)
 
-    fig = plt.figure()
+    fig = plt.figure(figsize=(graph_aspect_ratio_long, graph_aspect_ratio_height))
 
     x_distinct = list(sorted(set(x)))
     y_distinct = list(sorted(set(y)))
@@ -213,7 +214,7 @@ def violin_plot2(title, x_label, y_label, x, y, img_path):
     assert is_categorical(x)
     assert is_numerical(y)
 
-    fig = plt.figure()
+    fig = plt.figure(figsize=(graph_aspect_ratio_long, graph_aspect_ratio_height))
 
     ax = sns.violinplot(x=x, y=to_numerical(y))
 
@@ -317,7 +318,9 @@ double_column_function = {
 
 if __name__ == "__main__":
 
-    for i in range(3, 6):
+    for i in range(2, 6):
+        #if i != 2:
+        #    continue
 
         workdir = './test/sample%i/' % i
 
