@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import pandas as pd
+import matplotlib as plt
 from scipy.stats import pearsonr
 from scipy.spatial.distance import pdist, squareform
 from graph import single_column_function, double_column_function, is_categorical, is_numerical
@@ -319,7 +320,7 @@ def scagnostic_2nd(df, dtype_col, dtypes):
     return measure_list
 
 
-def identify_task_figure(scag_1st, scag_2nd):
+def identify_task_figure(scag_1st, scag_2nd, df):
     fig_dic = {'Correlation': [], 'Anomalies': [], 'Clusters': [], 'Distribution': [], 'Range': []}
     # 0: Correlation, 1st: Bar, 2nd: Scatter:
     #       Monotonic, Stringy
@@ -345,7 +346,8 @@ def identify_task_figure(scag_1st, scag_2nd):
         if (scag_1st[fig]['skewed'] > 0.5) & (scag_1st[fig]['outlying'] < 0.03):
             fig_dic['Clusters'].append(fig)
     for fig in scag_2nd:
-        if (scag_2nd[fig]['skewed'] > 0.5) & (scag_2nd[fig]['outlying'] < 0.03):
+        if (scag_2nd[fig]['skewed'] > 0.5) & (scag_2nd[fig]['outlying'] < 0.03) & \
+                ((len(df[fig.split('.')[0]].unique()) != 2) | (len(df[fig.split('.')[1]].unique()) != 2)):
             fig_dic['Clusters'].append(fig)
 
     # 3: Distribution, 1st: Density, 2nd: Scatter:
@@ -356,16 +358,18 @@ def identify_task_figure(scag_1st, scag_2nd):
             fig_dic['Distribution'].append(fig)
     for fig in scag_2nd:
         if (scag_2nd[fig]['stringy'] > 0.1) & (scag_2nd[fig]['overlap'] < 0.3) & \
-             (scag_2nd[fig]['outlying'] < 0.03):
+             (scag_2nd[fig]['outlying'] < 0.03) & ((len(df[fig.split('.')[0]].unique()) != 2) |
+                                                   (len(df[fig.split('.')[1]].unique()) != 2)):
             fig_dic['Distribution'].append(fig)
 
     # 4: Range, 1st: Box, 2nd: Scatter:
     #       Outlying (rev)
     for fig in scag_1st:
-        if (scag_1st[fig]['outlying'] < 0.1) & (scag_1st[fig]['monotonic'] < 0.3):
+        if (scag_1st[fig]['outlying'] < 0.09) & (scag_1st[fig]['monotonic'] < 0.3):
             fig_dic['Range'].append(fig)
     for fig in scag_2nd:
-        if (scag_2nd[fig]['outlying'] < 0.1) & (scag_2nd[fig]['monotonic'] < 0.3):
+        if (scag_2nd[fig]['outlying'] < 0.09) & (scag_2nd[fig]['monotonic'] < 0.3) & \
+                ((len(df[fig.split('.')[0]].unique()) != 2) | (len(df[fig.split('.')[1]].unique()) != 2)):
             fig_dic['Range'].append(fig)
 
     return fig_dic
@@ -414,13 +418,13 @@ def map_task_2_plot(df, task_fig, dtypes, dtype_col):
 
 def main(working_dir, file_name, task):
     # file_path = '/Users/haofan/Library/CloudStorage/OneDrive-WashingtonUniversityinSt.Louis/22Spring/AdViz/VizRecom'
-    # df = pd.read_csv(os.path.join(file_path, '300k.csv'))
+    # df = pd.read_csv(os.path.join(file_path, '300k.csv'), low_memory=False)
     # df = pd.read_csv(os.path.join(file_path, 'heart.csv'))
     # df = pd.read_csv(os.path.join(file_path, 'movies.csv'))
     # df = pd.read_csv(os.path.join(file_path, 'SpotifyTop100.csv'))
     # working_dir = file_path + '/result'
     path = os.path.join(working_dir, file_name)
-    df = pd.read_csv(path)
+    df = pd.read_csv(path, low_memory=False)
 
     # working_dir = ''
     # df = pd.read_csv(os.path.join(file_path, '300k.txt'), delimiter = "\t")
@@ -430,8 +434,8 @@ def main(working_dir, file_name, task):
     # dtype_col: data type-wise dictionary, store the column names
     df = df.dropna()
     dtypes, dtype_col = judge_dtype(df)
-    if len(dtype_col[3]) > 0:
-        print(dtype_col)
+    # if len(dtype_col[3]) > 0:
+    #     print(dtype_col)
 
     # extract key features of each column, and store them in the dtypes dictionary
     dtypes = extract_features(df, dtypes)
@@ -439,6 +443,9 @@ def main(working_dir, file_name, task):
         col = []
         for i in range(1, 152):
             col.append('cooc_' + str(i))
+        for i in df.columns:
+            if 'cellId' in i:
+                col.append(i)
         df = df.drop(columns=col)
 
     # extract scagnostics for 1st scatter plots
@@ -448,7 +455,7 @@ def main(working_dir, file_name, task):
     scatter_2nd = scagnostic_2nd(df, dtype_col, dtypes)
 
     # task-specific rules
-    task_list = identify_task_figure(scatter_1st, scatter_2nd)
+    task_list = identify_task_figure(scatter_1st, scatter_2nd, df)
     task_fig = map_task_2_plot(df, task_list, dtypes, dtype_col)
 
     address = []
@@ -458,9 +465,12 @@ def main(working_dir, file_name, task):
             file_path = os.path.join(working_dir, fig[0] + task_list[task][num] + '.png')
             if len(fig[1]) == 1:
                 single_column_function[fig[0]](title[fig[0]] + 'for ' + fig[1][0], df[fig[1][0]], file_path)
+                plt.close('all')
             elif len(fig[1]) == 2:
                 double_column_function[fig[0]](title[fig[0]] + 'between ' + fig[1][0] + ' and ' + fig[1][1],
-                                               fig[1][0], fig[1][1], df[fig[1][0]], df[fig[1][1]], file_path)
+                                               fig[1][0], fig[1][1], list(df[fig[1][0]]), list(df[fig[1][1]]),
+                                               file_path)
+                plt.close('all')
             address.append(file_path)
             for col in fig[1]:
                 if col not in col_used:
