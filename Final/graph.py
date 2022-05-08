@@ -35,7 +35,7 @@ def to_numerical(l):
     return list(map(float, filter(lambda x:x>-1e1000 and x<1e1000, l)))
 
 
-def bargraph(title, data, img_path):
+def bar(title, data, img_path):
 
     x = []
     y = []
@@ -100,7 +100,7 @@ def bargraph(title, data, img_path):
     plt.savefig(img_path, bbox_inches='tight')
     return None
 
-def violingraph(title, data, img_path):
+def violin_plot1(title, data, img_path):
 
     plt.figure()
 
@@ -112,7 +112,7 @@ def violingraph(title, data, img_path):
     return None
 
 
-def densitygraph(title, data, img_path):
+def density_plot(title, data, img_path):
 
     plt.figure()
     if is_numerical(data):
@@ -121,7 +121,7 @@ def densitygraph(title, data, img_path):
         plt.title(title)
         plt.savefig(img_path)
 
-def boxgraph(title, data, img_path):
+def box_plot(title, data, img_path):
 
     plt.figure()
     if is_numerical(data):
@@ -132,7 +132,7 @@ def boxgraph(title, data, img_path):
     return None
 
 # Double Columns
-def scatter(title, x_label, y_label, x, y, img_path):
+def scatter_plot(title, x_label, y_label, x, y, img_path):
     total_len = len(x)
     assert len(x) == len(y)
 
@@ -203,7 +203,7 @@ def heatmap(title, x_label, y_label, x, y, img_path):
     plt.savefig(img_path)
     return
 
-def violinplot2(title, x_label, y_label, x, y, img_path):
+def violin_plot2(title, x_label, y_label, x, y, img_path):
 
     # Assert categorical (x) x numerical (y)
 
@@ -234,25 +234,25 @@ def main(workdir):
         col = list(df.loc[:, col_name])
         # print(col_num, col_name, len(col), is_categorical(col), is_numerical(col))
 
-        image_type = "histogram"
+        image_type = "bar"
         image_name = image_type + "_" + col_name + ".png"
         image_path = workdir + image_name
-        bargraph(col_name + " (%s)" % image_type, col, image_path)
+        bar(col_name + " (%s)" % image_type, col, image_path)
 
-        image_type = "violin_graph"
+        image_type = "violin1"
         image_name = image_type + "_" + col_name + ".png"
         image_path = workdir + image_name
-        violingraph(col_name + " (%s)" % image_type, col, image_path)
+        violin_plot1(col_name + " (%s)" % image_type, col, image_path)
 
-        image_type = "density_graph"
+        image_type = "density"
         image_name = image_type + "_" + col_name + ".png"
         image_path = workdir + image_name
-        densitygraph(col_name + " (%s)" % image_type, col, image_path)
+        density_plot(col_name + " (%s)" % image_type, col, image_path)
 
-        image_type = "box_graph"
+        image_type = "box"
         image_name = image_type + "_" + col_name + ".png"
         image_path = workdir + image_name
-        boxgraph(col_name + " (%s)" % image_type, col, image_path)
+        box_plot(col_name + " (%s)" % image_type, col, image_path)
 
 
     for col_num1, col_name1 in enumerate(df.columns):
@@ -266,12 +266,12 @@ def main(workdir):
             # print(col_num1, col_name1, len(col1), is_categorical(col1), is_numerical(col1))
             # print(col_num2, col_name2, len(col2), is_categorical(col2), is_numerical(col2))
 
-            image_type = "scatter_plot"
+            image_type = "scatter"
             image_title = "%s_vs_%s_(%s)" % (col_name1, col_name2, image_type)
             image_name = image_title + ".png"
             image_path = workdir + image_name
             if is_numerical(col1) and is_numerical(col2):
-                scatter(image_title, col_num1, col_num2, col1, col2, image_path)
+                scatter_plot(image_title, col_num1, col_num2, col1, col2, image_path)
 
             image_type = "heatmap"
             image_title = "%s_vs_%s_(%s)" % (col_name1, col_name2, image_type)
@@ -280,16 +280,29 @@ def main(workdir):
             if is_categorical(col1) and is_categorical(col2):
                 heatmap(image_title, col_num1, col_num2, col1, col2, image_path)
 
-            image_type = "heatmap"
+            image_type = "violin2"
             image_title = "%s_vs_%s_(%s)" % (col_name1, col_name2, image_type)
             image_name = image_title + ".png"
             image_path = workdir + image_name
             if is_categorical(col1) and is_numerical(col2):
-                violinplot2(image_title, col_num1, col_num2, col1, col2, image_path)
+                violin_plot2(image_title, col_num1, col_num2, col1, col2, image_path)
 
 
     return len(df.columns), len(df)
 
+
+single_column_function = {
+    "bar": bar,
+    "violin1": violin_plot1,
+    "density": density_plot,
+    "box": box_plot,
+}
+
+double_column_function = {
+    "scatter": scatter_plot,
+    "heatmap": heatmap,
+    "violin2": violin_plot2
+}
 
 
 if __name__ == "__main__":
