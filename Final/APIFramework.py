@@ -410,6 +410,10 @@ class APIFramework(object):
         else:
             sf = self.autopath(self._static_folder)
 
+        if not self._clean_start and self.status_saving_location() != None:
+            if os.path.exists(self.status_saving_location()):
+                self.result_cache = json.load(open(self.status_saving_location()))
+
 
         flask_app = flask.Flask(self._app_name,
                                 template_folder = tf,
@@ -749,11 +753,9 @@ class APIFramework(object):
 
     def update_results(self, getall=False):
 
+        dump = False
         i = 0
         while True:
-
-            if not getall and i >= 5:
-                break
 
             i += 1
 
@@ -770,10 +772,15 @@ class APIFramework(object):
                 self.result_cache[res["id"]]["result"] = res["result"]
 
                 self.result_cache[res["id"]]['finished'] = True
+
+                dump = True
             except queue.Empty:
                 break
             except KeyError:
                 self.output(1, "Job ID %s is not present" % res["id"])
+
+        if dump:
+            self.dump_status()
 
 
     def allow_file_ext(self, filename):
@@ -981,7 +988,7 @@ class APIFramework(object):
 
     def cleanup(self):
         atexit.register(self.terminate_all)
-        atexit.register(self.dump_status)
+        # atexit.register(self.dump_status)
 
 
     def terminate_all(self):
